@@ -1,0 +1,41 @@
+Requirements :
+
+langchain & langchain-community: Core framework for RAG and document loading.
+langchain-huggingface & sentence-transformers: For generating semantic embeddings locally.
+chromadb: Vector store for semantic search.
+deep-translator & langdetect: Used in data_cleaner.py for English-to-French translation and detection.
+pypdf, docx2txt, unstructured: To extract text from PDF, Word, PowerPoint, and other formats.
+neo4j: Required for your robust Graph RAG system.
+python-magic-bin: Essential for file type detection on Windows.
+
+py -3 utils/data_cleaner.py iit/scraped_data_categorized iit/scraped_data_cleaned IIT
+py -3 utils/data_cleaner.py isb/scraped_data_categorized isb/scraped_data_cleaned ISB
+
+Graph RAG Implementation Plan
+Building a robust Graph RAG system involves moving beyond simple semantic search to structured knowledge retrieval. This allows the system to answer complex, multi-hop questions (e.g., "Find all courses in Digital Marketing that have partnerships with Swiss universities").
+
+Proposed Architecture
+1. Data Processing & Knowledge Extraction
+Entity Extraction: Use a high-quality LLM (e.g., GPT-4 or Gemini) to extract entities from the cleaned text files.
+Nodes: University, Faculty, Degree, Course, Professor, Partner, City, Skill.
+Relationship Extraction: Define how these entities connect.
+Edges: OFFERS, PART OF, TEACHES, PARTNER_WITH, REQUIRES_SKILL.
+2. Graph Storage (Neo4j)
+Use Neo4j as the graph database. It provides Cypher (query language) which is essential for multi-hop reasoning.
+Store the original text chunks as properties on nodes or as separate Chunk nodes linked to the entities they mention.
+3. Hybrid Indexing
+Vector Index: Maintain the ChromaDB vector store for "vague" or "semantic" similarity.
+Graph Index: Use Neo4j's vector index (new feature) OR a separate graph index to link entities in the query to nodes in the graph.
+4. Retrieval Pipeline (The "Robust" Part)
+Step A: Entity Linking: Extract entities from the user's query.
+Step B: Graph Traversal: Fetch the immediate and 2-hop neighbors of the linked entities.
+Step C: Vector Search: Perform semantic search to find the most relevant "raw" text sections.
+Step D: Synthesis: Pass both the structured graph data (e.g., "Universities A and B both offer Degree X") and unstructured text chunks to the LLM.
+Tech Stack
+Orchestration: LangChain (for GraphIndex and CypherChain).
+Graph DB: Neo4j (Self-hosted or AuraDB).
+Embeddings: HuggingFace (already in use).
+Next Steps
+Schema Finalization: Agree on the exact types of nodes and relationships.
+extraction_script.py: Create a script that reads scraped_data_cleaned and generates JSON-LD or Cypher commands.
+ingest_to_graph.py: A script to populate Neo4j.

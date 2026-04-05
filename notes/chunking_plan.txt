@@ -1,0 +1,32 @@
+Semantic Chunking Strategy Implementation Plan
+A robust RAG system relies on high-quality chunks. Simply cutting text at fixed intervals creates "context orphans". This plan introduces a hierarchical, metadata-rich chunking strategy.
+
+Proposed Strategy: "Semantic Breadcrumb Chunking"
+1. Header-Aware Initial Splitting
+Instead of treating the text as a uniform block, we first split by identifying the structural headers from the cleaning phase (e.g., Programmes, Admission, Perspectives).
+
+Benefit: Ensures that logical sections are kept together as much as possible.
+2. Metadata Injection (Breadcrumbs)
+Every single chunk will be prefixed with its core context.
+
+Header Structure: [Source: {URL} | Title: {Title} | Site: {Site}]
+Benefit: Even if a chunk is small, the embedding model "sees" the university and program name, dramatically improving retrieval accuracy.
+3. Progressive Splitting (Recursive)
+After the header split, we use RecursiveCharacterTextSplitter with the following parameters:
+
+Chunk Size: 800-1000 characters (providing enough density for complex university program details).
+Overlap: 100-150 characters (ensuring multi-sentence context isn't lost).
+Separators: Paragraphs (\n\n), then Sentences (. ), then Words ( ).
+Proposed Changes
+[NEW] 
+chunk_data.py
+This script will:
+
+Walk through iit/scraped_data_cleaned and isb/scraped_data_cleaned.
+Extract the header metadata (Source, Title, Site) from the top of each file.
+Apply the hierarchical chunking.
+Export JSON objects containing {text, metadata} to a new directory scraped_data_chunked.
+Verification Plan
+Visual Check: Inspect 5 random chunks to ensure the metadata header is present.
+Boundary Check: Verify that Programmes lists aren't cut in half in a way that loses the program context.
+Quantity check: Ensure the number of chunks scales reasonably with the input text size.
