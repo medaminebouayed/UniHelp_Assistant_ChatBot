@@ -1,0 +1,175 @@
+<div class="space-y-6 transition-colors duration-200">
+  <!-- Welcome Header -->
+  <div class="relative rounded-2xl overflow-hidden shadow-lg backdrop-blur-md"
+    [style.background]="'linear-gradient(135deg, rgba(0,175,185,0.5), rgba(0,175,185,0.9))'">
+    <div class="h-48 bg-slate-800 relative">
+      <!-- Background Pattern placeholder -->
+      <div class="absolute inset-0 opacity-30 bg-cover bg-center"
+           style="background-image: url('assets/images/couverture2.jpg')"></div>
+
+      <div
+        class="relative z-10 h-full flex flex-col md:flex-row items-start md:items-center justify-between p-6 md:p-8 gap-4">
+        <div class="text-white">
+          <h2 class="text-3xl md:text-4xl font-bold mb-2">
+            {{ 'dashboard.welcome' | translate:{name: firstName()} }}
+          </h2>
+          <p class="text-white/80 text-base max-w-lg leading-relaxed">
+            {{ 'dashboard.subtitle' | translate }}
+          </p>
+        </div>
+        <button (click)="navigateToChat()"
+          class="flex items-center gap-2 bg-white/90 text-slate-800 px-6 py-3 rounded-xl text-sm font-semibold hover:bg-white hover:scale-105 transition-all duration-300 shadow-md shrink-0">
+          <lucide-icon name="message-square" class="w-5 h-5 text-[#1d4b99]"></lucide-icon>
+          <span>{{ 'dashboard.askQuestion' | translate }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 flex items-center space-x-4">
+      <div class="p-3 rounded-lg bg-blue-100">
+        <lucide-icon name="message-square" class="w-6 h-6 text-blue-600"></lucide-icon>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-slate-500 dark:text-slate-300">{{ 'dashboard.conversations' | translate }}</p>
+        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">{{ stats().conversations }}</h3>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 flex items-center space-x-4">
+      <div class="p-3 rounded-lg bg-amber-100">
+        <lucide-icon name="send" class="w-6 h-6 text-amber-600"></lucide-icon>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-slate-500 dark:text-slate-300">{{ 'dashboard.documents' | translate }}</p>
+        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">{{ stats().documents }}</h3>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 flex items-center space-x-4">
+      <div class="p-3 rounded-lg bg-purple-100">
+        <lucide-icon name="mail" class="w-6 h-6 text-purple-600"></lucide-icon>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-slate-500 dark:text-slate-300">{{ 'dashboard.emails' | translate }}</p>
+        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">{{ stats().emails }}</h3>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 flex items-center space-x-4">
+      <div class="p-3 rounded-lg bg-rose-100">
+        <lucide-icon name="star" class="w-6 h-6 text-rose-600"></lucide-icon>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-slate-500 dark:text-slate-300">{{ 'dashboard.favorites' | translate }}</p>
+        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">{{ stats().favorites }}</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity Column Row -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Activity Chart Placeholder -->
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 lg:col-span-2 flex flex-col">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ 'dashboard.activityChart' | translate }}</h3>
+          <p class="text-sm text-slate-500 dark:text-slate-300">{{ 'dashboard.activitySubtitle' | translate }}</p>
+        </div>
+        <div class="flex bg-slate-100 dark:bg-slate-700 p-1.5 rounded-xl">
+          <button (click)="setChartTab('semaine')" class="px-4 py-1.5 text-sm font-medium rounded-lg transition-colors"
+            [ngClass]="chartTab() === 'semaine' ? 'bg-[#1d4b99] text-white shadow-sm' : 'text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-300'">
+            {{ 'dashboard.thisWeek' | translate }}
+          </button>
+          <button (click)="setChartTab('mois')" class="px-4 py-1.5 text-sm font-medium rounded-lg transition-colors"
+            [ngClass]="chartTab() === 'mois' ? 'bg-[#1d4b99] text-white shadow-sm' : 'text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-300'">
+            {{ 'dashboard.thisMonth' | translate }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Chart.js Canvas -->
+      <div class="flex-1 w-full relative mt-4" style="min-height: 280px;">
+        <canvas id="activityChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Progression d'utilisation - Pie/Bar Chart -->
+    <div
+      class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full lg:col-span-1">
+      <div class="p-5 border-b border-slate-100 dark:border-slate-700">
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ 'dashboard.progression' | translate }}</h3>
+        <p class="text-sm text-slate-500 dark:text-slate-300 mt-1">{{ 'dashboard.progressionSubtitle' | translate }}</p>
+        <div class="flex bg-slate-100 dark:bg-slate-700 p-1.5 rounded-xl w-fit mt-4">
+          <button (click)="setProgressionTab('bar')"
+            class="px-4 py-1.5 text-sm font-medium rounded-lg transition-colors"
+            [ngClass]="progressionTab() === 'bar' ? 'bg-[#1d4b99] text-white shadow-sm' : 'text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-300'">
+            Bar Chart
+          </button>
+          <button (click)="setProgressionTab('pie')"
+            class="px-4 py-1.5 text-sm font-medium rounded-lg transition-colors"
+            [ngClass]="progressionTab() === 'pie' ? 'bg-[#1d4b99] text-white shadow-sm' : 'text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-300'">
+            Pie Chart
+          </button>
+        </div>
+      </div>
+
+      <div class="p-6 flex-1 flex flex-col justify-center">
+        <h3 class="text-center text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4">{{ 'dashboard.usageDistribution' | translate }}</h3>
+        <div class="w-full relative" style="height: 250px;">
+          <canvas id="progressionChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Row -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+    <!-- Favorite Messages -->
+    <div
+      class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full lg:col-span-2">
+      <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ 'dashboard.favoriteConversations' | translate }}</h3>
+        <button routerLink="/student/chatbot" class="text-xs font-medium hover:underline" style="color: #1d4b99">{{ 'dashboard.seeAll' | translate }}</button>
+      </div>
+      <ul class="divide-y divide-slate-100 dark:divide-slate-700 flex-1">
+        <li *ngFor="let msg of favoriteMessages()"
+          class="px-5 py-4 flex items-start space-x-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer">
+          <div class="mt-0.5 shrink-0">
+            <lucide-icon name="star" class="w-4 h-4 text-amber-400" style="fill: currentColor"></lucide-icon>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm text-slate-800 truncate">{{ msg.text }}</p>
+            <div class="flex items-center gap-2 mt-1.5">
+              <span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">{{ msg.source
+                }}</span>
+              <span class="text-xs text-slate-400 dark:text-slate-400">{{ msg.time }}</span>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Recent Activity -->
+    <div
+      class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full lg:col-span-1">
+      <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ 'dashboard.recentActivity' | translate }}</h3>
+      </div>
+      <ul class="divide-y divide-slate-100 dark:divide-slate-700 flex-1 overflow-y-auto">
+        <li *ngFor="let activity of recentActivity()" class="px-5 py-4 flex items-start space-x-3">
+          <div class="mt-0.5">
+            <lucide-icon [name]="getActivityIcon(activity.type)" class="w-4 h-4"
+              [ngClass]="getActivityColor(activity.type)"></lucide-icon>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm text-slate-800">{{ activity.action }}</p>
+            <p class="text-xs text-slate-400 dark:text-slate-400 mt-0.5">{{ activity.time }}</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

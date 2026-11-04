@@ -1,0 +1,249 @@
+<!-- Chatbot Floating Action Button -->
+<ng-container *ngIf="!isOnChatbotPage()">
+  <div class="fab-container transition-colors duration-200" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
+
+    <!-- Tooltip (only shown when the popup is closed) -->
+    <div class="fab-tooltip" [class.visible]="isHovered() && !isOpen()">
+      Discuter avec UniHelp
+      <div class="fab-tooltip-arrow"></div>
+    </div>
+
+    <!-- Chat Popup Widget -->
+    <div class="chat-popup" [class.visible]="isOpen()">
+      <!-- Header -->
+      <div class="chat-header">
+        <div class="header-info">
+          <div class="bot-avatar">
+            <lucide-icon name="graduation-cap" class="avatar-icon"></lucide-icon>
+          </div>
+          <div class="title-status">
+            <span class="chat-title">UniHelp</span>
+            <span class="chat-status">
+              <span class="status-dot"></span>
+              En ligne
+            </span>
+          </div>
+        </div>
+        <div class="header-actions">
+          <!-- Go to full screen chatbot page -->
+          <button class="fullscreen-btn" (click)="goToChatbot()" title="Ouvrir en plein écran">
+            <span class="square-icon"></span>
+          </button>
+          <!-- Close button -->
+          <button class="close-btn" (click)="toggleChat()" title="Fermer">
+            <lucide-icon name="x" class="action-icon"></lucide-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Toast inside chat popup -->
+      <div *ngIf="toast()" class="chat-toast flex items-center">
+        <lucide-icon *ngIf="toast()?.toLowerCase()?.includes('copi')" name="copy" style="width: 13px; height: 13px; color: #22c55e; margin-right: 6px; display: inline-flex; align-items: center; justify-content: center;"></lucide-icon>
+        <lucide-icon *ngIf="toast()?.toLowerCase()?.includes('régénér') || toast()?.toLowerCase()?.includes('génér')" name="refresh-cw" class="animate-spin" style="width: 13px; height: 13px; color: #60a5fa; margin-right: 6px; display: inline-flex; align-items: center; justify-content: center;"></lucide-icon>
+        <lucide-icon *ngIf="!toast()?.toLowerCase()?.includes('copi') && !toast()?.toLowerCase()?.includes('régénér') && !toast()?.toLowerCase()?.includes('génér')" name="check" style="width: 13px; height: 13px; color: #22c55e; margin-right: 6px; display: inline-flex; align-items: center; justify-content: center;"></lucide-icon>
+        <span>{{ toast() }}</span>
+      </div>
+
+      <!-- Chat History -->
+      <div class="chat-messages">
+        <div *ngFor="let msg of messages()" class="message-row-container">
+          <div class="message-row" [class.user-row]="msg.sender === 'user'">
+            <!-- Bot Avatar (left) -->
+            <div *ngIf="msg.sender === 'ai'" class="bot-avatar-small">
+              <lucide-icon name="graduation-cap" class="avatar-icon-small"></lucide-icon>
+            </div>
+
+            <!-- Message Column -->
+            <div class="message-bubble-column">
+              <!-- Type Badge -->
+              <div *ngIf="msg.sender === 'ai' && msg.type && msg.type !== 'normal'" class="type-badge-container">
+                <span class="type-badge" [class]="getTypeBadgeClass(msg.type)">
+                  {{ getTypeBadgeLabel(msg.type) }}
+                </span>
+              </div>
+
+              <!-- Message Bubble -->
+              <div class="message-bubble">
+                <!-- Edit Mode -->
+                <div *ngIf="editingMessageId() === msg.id" class="w-full">
+                  <textarea [(ngModel)]="editingText" class="edit-textarea" rows="2"></textarea>
+                  <div class="edit-actions">
+                    <button type="button" class="edit-btn-cancel" (click)="cancelEdit()">Annuler</button>
+                    <button type="button" class="edit-btn-send" (click)="submitEdit(msg.id)">Envoyer</button>
+                  </div>
+                </div>
+                <span *ngIf="editingMessageId() !== msg.id">{{ msg.text }}</span>
+              </div>
+
+              <!-- Interactive Form -->
+              <ng-container *ngIf="msg.type === 'form' && msg.formFields">
+                <!-- Submitted state inside FAB -->
+                <div *ngIf="msg.formSubmitted" class="fab-form-submitted">
+                  <div class="submitted-check-circle">
+                    <lucide-icon name="check" class="submitted-check-icon"></lucide-icon>
+                  </div>
+                  <p class="submitted-text">
+                    Formulaire soumis avec succès. Le document a été généré.
+                  </p>
+                </div>
+
+                <!-- Form inside FAB -->
+                <form *ngIf="!msg.formSubmitted" (ngSubmit)="submitForm(msg)" class="fab-interactive-form">
+                  <h4 class="fab-form-title">
+                    {{ getFormTitle(msg.formType) }}
+                  </h4>
+
+                  <div class="fab-form-fields">
+                    <div *ngFor="let field of msg.formFields" class="fab-form-field-group">
+                      <label class="fab-field-label">
+                        {{ field.label }}
+                        <span *ngIf="field.required" class="required-star">*</span>
+                      </label>
+
+                      <!-- Select -->
+                      <select *ngIf="field.type === 'select'"
+                              [name]="field.name"
+                              [required]="!!field.required"
+                              (change)="updateFormField(msg.id, field.name, $any($event.target).value)"
+                              class="fab-form-select">
+                        <option value="">Sélectionner...</option>
+                        <option *ngFor="let opt of field.options" [value]="opt">{{ opt }}</option>
+                      </select>
+
+                      <!-- Textarea -->
+                      <textarea *ngIf="field.type === 'textarea'"
+                                [name]="field.name"
+                                [required]="!!field.required"
+                                [placeholder]="field.placeholder || ''"
+                                rows="2"
+                                (input)="updateFormField(msg.id, field.name, $any($event.target).value)"
+                                class="fab-form-textarea">
+                      </textarea>
+
+                      <!-- Input -->
+                      <input *ngIf="field.type !== 'select' && field.type !== 'textarea'"
+                             [type]="field.type"
+                             [name]="field.name"
+                             [required]="!!field.required"
+                             [placeholder]="field.placeholder || ''"
+                             (input)="updateFormField(msg.id, field.name, $any($event.target).value)"
+                             class="fab-form-input" />
+                    </div>
+                  </div>
+
+                  <button type="submit" class="fab-form-submit-btn">
+                    Générer le document
+                  </button>
+                </form>
+              </ng-container>
+
+
+              <!-- Source -->
+              <div *ngIf="msg.sender === 'ai' && msg.source" class="message-source">
+                <lucide-icon name="book-open" class="source-icon"></lucide-icon>
+                <span>{{ msg.source }}</span>
+              </div>
+
+              <!-- Time + Actions -->
+              <div class="message-meta">
+                <span class="message-time">{{ formatTime(msg.timestamp) }}</span>
+
+                <!-- Actions for Bot -->
+                <div *ngIf="msg.sender === 'ai' && msg.id !== 'welcome-msg'" class="message-actions">
+                  <button class="action-btn" (click)="refreshMessage(msg.id)" title="Régénérer">
+                    <lucide-icon name="refresh-cw" class="bubble-action-icon" style="display: inline-flex; align-items: center; justify-content: center;"></lucide-icon>
+                  </button>
+                  <button class="action-btn" (click)="copyMessage(msg.text)" title="Copier">
+                    <lucide-icon name="copy" class="bubble-action-icon" style="display: inline-flex; align-items: center; justify-content: center;"></lucide-icon>
+                  </button>
+                </div>
+
+                <!-- Actions for User -->
+                <div *ngIf="msg.sender === 'user'" class="message-actions">
+                  <button class="action-btn" (click)="copyMessage(msg.text)" title="Copier">
+                    <lucide-icon name="copy" class="bubble-action-icon" style="display: inline-flex; align-items: center; justify-content: center;"></lucide-icon>
+                  </button>
+                  <button class="action-btn" (click)="editMessage(msg)" title="Modifier">
+                    <lucide-icon name="edit-2" class="bubble-action-icon" style="display: inline-flex; align-items: center; justify-content: center;"></lucide-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- User Avatar (right) -->
+            <div *ngIf="msg.sender === 'user'" class="user-avatar-small">
+              <lucide-icon name="user" class="avatar-icon-small"></lucide-icon>
+            </div>
+          </div>
+
+          <!-- Suggestion Chips (bot message only) -->
+          <div *ngIf="msg.sender === 'ai' && msg.suggestions && msg.suggestions.length > 0"
+            class="suggestions-container">
+            <ng-container *ngFor="let s of msg.suggestions">
+              <!-- Ordinary Suggestion Chip -->
+              <button *ngIf="s !== 'Question administrative'" type="button" class="suggestion-chip" (click)="handleSuggestion(s)">
+                {{ s }}
+              </button>
+
+              <!-- Dropdown Suggestion Chip for Question administrative -->
+              <div *ngIf="s === 'Question administrative'" class="dropdown-suggestion-container">
+                <button type="button" class="suggestion-chip dropdown-trigger" (click)="toggleAdminDropdown($event)">
+                  <span>{{ s }}</span>
+                  <lucide-icon name="chevron-down" class="dropdown-chevron-icon"></lucide-icon>
+                </button>
+                
+                <div *ngIf="showAdminDropdown()" class="dropdown-menu-overlay" (click)="closeAdminDropdown($event)"></div>
+                <div *ngIf="showAdminDropdown()" class="dropdown-menu-items">
+                  <button type="button" *ngFor="let opt of adminOptions" (click)="selectAdminOption(opt, $event)" class="dropdown-item">
+                    {{ opt }}
+                  </button>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+          <!-- Hidden file input for document summarization -->
+          <input type="file" #fileInput (change)="onFileSelected($event)" style="display:none" />
+        </div>
+
+        <!-- Typing Indicator -->
+        <div *ngIf="isTyping()" class="message-row">
+          <div class="bot-avatar-small">
+            <lucide-icon name="graduation-cap" class="avatar-icon-small"></lucide-icon>
+          </div>
+          <div class="typing-indicator-bubble">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Area -->
+      <div class="chat-input-area">
+        <form (ngSubmit)="sendMessage()" class="input-form">
+          <input type="text" name="userMessage" [(ngModel)]="inputText" placeholder="Poser une question, résumé..."
+            class="chat-input" autocomplete="off" />
+          <button type="submit" class="send-btn" [disabled]="!inputText.trim()">
+            <lucide-icon name="send" class="send-icon"></lucide-icon>
+          </button>
+        </form>
+        <span class="confidential-footer">
+        </span>
+      </div>
+    </div>
+
+    <!-- Floating wrapper containing the button and pulse rings -->
+    <div class="fab-floating-wrapper">
+      <!-- FAB Button -->
+      <button class="fab-button dark:shadow-lg dark:shadow-slate-800" (click)="toggleChat()" aria-label="Ouvrir le chatbot UniHelp">
+        <!-- Main icon: graduation-cap (UniHelp logo) -->
+        <lucide-icon name="graduation-cap" class="fab-icon" [size]="34"></lucide-icon>
+      </button>
+
+      <!-- Pulse rings animation -->
+      <div class="fab-pulse-ring ring-1"></div>
+      <div class="fab-pulse-ring ring-2"></div>
+    </div>
+
+  </div>
+</ng-container>

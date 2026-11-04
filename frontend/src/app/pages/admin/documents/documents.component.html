@@ -1,0 +1,211 @@
+<div class="space-y-6 font-sans transition-colors duration-200">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">{{ 'admin.documents' | translate }}</h1>
+  </div>
+
+  <!-- Filters & Search -->
+  <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row gap-3">
+    <div class="relative flex-1">
+      <lucide-icon name="search"
+        class="w-5 h-5 absolute left-2 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500"></lucide-icon>
+      <input type="text" placeholder="{{ 'common.search' | translate }}..." [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event); currentPage.set(1)" [style.paddingLeft]="'3rem'"
+        class="w-full pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#1d4b99] focus:border-[#1d4b99] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
+    </div>
+
+    <div class="flex gap-2">
+      <div class="relative">
+        <button (click)="toggleFilter()"
+          class="flex items-center space-x-2 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors bg-white dark:bg-slate-800">
+          <lucide-icon name="filter" class="w-4 h-4"></lucide-icon>
+          <span>{{ 'common.filter' | translate }}</span>
+          <lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon>
+        </button>
+
+        <div *ngIf="isFilterOpen()"
+          class="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-4 z-50 space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-1.5">Catégorie</label>
+            <select [ngModel]="categoryFilter()" (ngModelChange)="categoryFilter.set($event); currentPage.set(1)"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 focus:ring-2 focus:ring-[#1d4b99] outline-none text-slate-900 dark:text-white">
+              <option value="">Toutes</option>
+              <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+            </select>
+          </div>
+          <button (click)="clearFilters()"
+            class="w-full px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-t border-slate-100 dark:border-slate-700 pt-3">
+            Réinitialiser
+          </button>
+        </div>
+        <!-- Overlay to close filter -->
+        <div *ngIf="isFilterOpen()" (click)="toggleFilter()" class="fixed inset-0 z-40 bg-transparent"></div>
+      </div>
+
+      <button (click)="openAddModal()"
+        class="flex items-center space-x-2 bg-[#1d4b99] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#153c80] transition-colors shadow-sm">
+        <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
+        <span>Ajouter</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left">
+        <thead class="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700">
+          <tr>
+            <th class="px-6 py-4 font-medium">ID</th>
+            <th class="px-6 py-4 font-medium">Titre</th>
+            <th class="px-6 py-4 font-medium">Catégorie</th>
+            <th class="px-6 py-4 font-medium">Date</th>
+            <th class="px-6 py-4 font-medium">Taille</th>
+            <th class="px-6 py-4 font-medium text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+          <tr *ngFor="let doc of paginatedDocs()" class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+            <td class="px-6 py-4 text-slate-500 dark:text-slate-400 font-mono text-xs">{{ doc.id }}</td>
+            <td class="px-6 py-4">
+              <div class="flex items-center space-x-3">
+                <div class="p-2 bg-teal-50 text-[#1d4b99] rounded-lg">
+                  <lucide-icon name="file-text" class="w-4 h-4"></lucide-icon>
+                </div>
+                <span class="font-medium text-slate-900 dark:text-white">{{ doc.title }}</span>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <span
+                class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 text-slate-700 dark:text-slate-300">
+                {{ doc.category }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-slate-500 dark:text-slate-400">{{ doc.date }}</td>
+            <td class="px-6 py-4 text-slate-500 dark:text-slate-400">{{ doc.size }}</td>
+            <td class="px-6 py-4 text-right">
+              <div class="flex justify-end space-x-1">
+                <button (click)="openEditModal(doc)"
+                  class="p-1.5 text-slate-400 dark:text-slate-500 hover:text-[#1d4b99] hover:bg-teal-50 dark:hover:bg-teal-900/30 rounded-lg transition-colors">
+                  <lucide-icon name="edit-2" class="w-4 h-4"></lucide-icon>
+                </button>
+                <button (click)="openDeleteModal(doc)"
+                  class="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors">
+                  <lucide-icon name="trash" class="w-4 h-4"></lucide-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="paginatedDocs().length === 0">
+            <td colspan="6" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 italic">Aucun document trouvé.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div
+      class="p-4 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-700/50">
+      <span>Affichage de {{ startIndex() + 1 }} à {{ endIndex() }} sur {{ filteredCount() }} documents</span>
+      <div class="flex items-center gap-1">
+        <button (click)="prevPage()" [disabled]="currentPage() === 1"
+          class="px-2 py-1 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 disabled:opacity-50 text-slate-700 dark:text-slate-300">&lt;</button>
+        <div class="flex gap-1">
+          <button *ngFor="let p of pageNumbers()" (click)="goToPage(p)"
+            class="w-8 h-8 rounded-md transition-all font-medium" [class.bg-[#1d4b99]]="currentPage() === p"
+            [class.text-white]="currentPage() === p" [class.hover:bg-slate-200]="currentPage() !== p">{{ p }}</button>
+        </div>
+        <button (click)="nextPage()" [disabled]="currentPage() === totalPages()"
+          class="px-2 py-1 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 disabled:opacity-50 text-slate-700 dark:text-slate-300">&gt;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div *ngIf="isModalOpen()">
+    <div (click)="isModalOpen.set(false)" class="fixed inset-0 bg-slate-900/50 dark:bg-black/70 backdrop-blur-sm z-50" [@fadeIn]></div>
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden" [@modalSlide]>
+        <div class="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-700/50">
+          <h2 class="text-xl font-bold text-slate-900 dark:text-white">{{ editingDoc() ? 'Modifier le document' : 'Ajouter un document'
+            }}</h2>
+          <button (click)="isModalOpen.set(false)"
+            class="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600">
+            <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+          </button>
+        </div>
+        <div class="p-6 space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Titre du document</label>
+            <input type="text" [(ngModel)]="formData.title"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:ring-2 focus:ring-[#1d4b99] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Catégorie</label>
+            <select [(ngModel)]="formData.category"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:ring-2 focus:ring-[#1d4b99] bg-white dark:bg-slate-800 outline-none text-slate-900 dark:text-white">
+              <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+            </select>
+          </div>
+          <div class="pt-4">
+            <label
+              class="flex flex-col items-center justify-center px-6 pt-5 pb-6 border-2 border-slate-300 dark:border-slate-600 border-dashed rounded-xl hover:border-[#1d4b99] hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-colors cursor-pointer">
+              <input type="file" #fileInput (change)="onFileSelected($event)" class="hidden" accept=".pdf,.docx,.doc,.txt,.json">
+              <ng-container *ngIf="!selectedFile; else filePicked">
+                <lucide-icon name="upload-cloud" class="mx-auto h-12 w-12 text-slate-400 dark:text-slate-500"></lucide-icon>
+                <p class="text-sm text-slate-600 dark:text-slate-300 font-medium">Télécharger un fichier</p>
+                <p class="text-[10px] text-slate-400 dark:text-slate-500">PDF, DOCX jusqu'à 10MB</p>
+              </ng-container>
+              <ng-template #filePicked>
+                <lucide-icon name="file-text" class="mx-auto h-10 w-10 text-[#1d4b99]"></lucide-icon>
+                <p class="text-sm text-[#1d4b99] dark:text-teal-400 font-medium truncate max-w-full">{{ selectedFile?.name }}</p>
+                <p class="text-[10px] text-slate-400 dark:text-slate-500">{{ (selectedFile?.size ?? 0) / 1024 | number:'1.0-0' }} KB</p>
+              </ng-template>
+            </label>
+          </div>
+        </div>
+        <div class="p-6 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 flex justify-end space-x-3">
+          <button (click)="isModalOpen.set(false)"
+            class="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700">{{ 'common.cancel' | translate }}</button>
+          <button (click)="handleSave()"
+            class="px-4 py-2 bg-[#1d4b99] text-white rounded-lg text-sm font-bold hover:bg-[#153c80] shadow-sm">{{
+            editingDoc() ? ('common.save' | translate) : 'Ajouter' }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div *ngIf="isDeleteModalOpen()">
+    <div (click)="isDeleteModalOpen.set(false)" class="fixed inset-0 z-[100] bg-black/40 dark:bg-black/70 backdrop-blur-sm backdrop"></div>
+    
+    <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 pointer-events-none">
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-8 relative border border-gray-100 dark:border-slate-700 modal-content pointer-events-auto" [@modalSlide]>
+        <button (click)="isDeleteModalOpen.set(false)" class="absolute top-4 right-4 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700">
+          <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+        </button>
+
+        <div class="text-center">
+          <div class="mx-auto mb-6 flex items-center justify-center w-20 h-20 rounded-full bg-red-50 dark:bg-red-900/30 border-4 border-red-100 dark:border-red-900/50">
+            <lucide-icon name="trash-2" class="w-10 h-10 text-red-600"></lucide-icon>
+          </div>
+
+          <h3 class="mb-2 text-xl font-bold text-gray-900 dark:text-white">Confirmer la suppression</h3>
+          <p class="mb-8 text-gray-500 dark:text-slate-400 leading-relaxed">
+            Êtes-vous sûr de vouloir supprimer le document <strong>{{ editingDoc()?.title }}</strong>&nbsp;?
+          </p>
+
+          <div class="flex flex-col sm:flex-row justify-center items-center gap-3">
+            <button (click)="isDeleteModalOpen.set(false)"
+              class="w-full sm:w-auto px-8 py-3 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-300 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-600 transition-all duration-200">
+              {{ 'common.cancel' | translate }}
+            </button>
+            <button (click)="handleDelete()"
+              class="w-full sm:w-auto px-8 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-red-500/20">
+              {{ 'common.delete' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

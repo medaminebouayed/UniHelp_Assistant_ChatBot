@@ -1,0 +1,287 @@
+<div class="max-w-5xl mx-auto space-y-6 relative pb-12 transition-colors duration-200">
+  <!-- Hidden file input for avatar -->
+  <input type="file" #avatarInput class="hidden" accept="image/*" (change)="handleImageUpload($event)" />
+
+  <!-- Toast -->
+  <div *ngIf="showToast()" [@fadeInOut]
+    class="fixed top-20 right-6 bg-emerald-500 text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 z-50">
+    <lucide-icon name="check" class="w-5 h-5"></lucide-icon>
+    <span class="text-sm font-medium">{{ 'profile.saved' | translate }}</span>
+  </div>
+
+  <!-- Cover Photo & Header -->
+  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+    <div class="h-48 md:h-64 w-full relative bg-slate-200">
+      <img src="../../../../assets/images/image3.png" alt="Cover" class="w-full h-full object-cover" />
+    </div>
+
+    <!-- Profile Info -->
+    <div class="px-6 md:px-8 pb-8 relative">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 -mt-16 md:-mt-20 mb-6">
+        <!-- Avatar -->
+        <div class="relative group inline-block">
+          <div
+            class="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white dark:border-slate-700 flex items-center justify-center text-white text-4xl font-bold shadow-md overflow-hidden bg-white dark:bg-slate-800"
+            [style.backgroundColor]="!avatarImage() ? '#1d4b99' : 'white'">
+            <img *ngIf="avatarImage()" [src]="avatarImage()" alt="Avatar" class="w-full h-full object-cover" />
+            <span *ngIf="!avatarImage()">{{ initials() }}</span>
+          </div>
+          <button (click)="avatarInput.click()"
+            class="absolute bottom-2 right-2 w-10 h-10 bg-white dark:bg-slate-800 rounded-full shadow-md border border-slate-100 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+            title="Changer de photo">
+            <lucide-icon name="camera" class="w-5 h-5"></lucide-icon>
+          </button>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-3">
+          <ng-container *ngIf="isEditing(); else viewMode">
+            <button (click)="cancelEdit()"
+              class="px-4 py-2 rounded-lg text-sm font-medium border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2">
+              <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
+              {{ 'profile.cancel' | translate }}
+            </button>
+            <button (click)="handleSave()"
+              class="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors flex items-center gap-2 shadow-sm bg-[#1d4b99] hover:bg-[#153c80]">
+              <lucide-icon name="save" class="w-4 h-4"></lucide-icon>
+              {{ 'profile.save' | translate }}
+            </button>
+          </ng-container>
+          <ng-template #viewMode>
+            <button (click)="startEdit()"
+              class="px-4 py-2 rounded-lg text-sm font-medium border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2 shadow-sm">
+              <lucide-icon name="edit-2" class="w-4 h-4"></lucide-icon>
+              {{ 'profile.edit' | translate }}
+            </button>
+          </ng-template>
+        </div>
+      </div>
+
+      <div>
+        <h1 class="text-3xl font-bold text-slate-900 dark:text-white">{{ profileData().prenom }} {{ profileData().nom }}</h1>
+        <p class="text-slate-500 dark:text-slate-400 mt-1 text-lg">
+          N° étudiant : {{ profileData().id }} · {{ profileData().diplomeSouhaite }}
+        </p>
+        <div class="flex flex-wrap gap-2 mt-4">
+          <span
+            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border border-emerald-200 bg-emerald-50 text-emerald-700">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+            En ligne
+          </span>
+      
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="border-b border-slate-200 dark:border-slate-700">
+    <div class="flex space-x-8 overflow-x-auto px-2">
+      <button *ngFor="let tab of tabs" (click)="setActiveTab(tab.id)"
+        class="pb-4 text-sm font-medium whitespace-nowrap border-b-2 transition-colors"
+        [class.text-slate-900]="activeTab() === tab.id" [class.border-transparent]="activeTab() !== tab.id"
+        [class.text-slate-500]="activeTab() !== tab.id"
+        [style.borderBottomColor]="activeTab() === tab.id ? '#1d4b99' : 'transparent'">
+        {{ tab.label }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab Content -->
+  <div [ngSwitch]="activeTab()">
+    <!-- Informations Tab -->
+    <div *ngSwitchCase="'informations'" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Personal Info -->
+      <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+        <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-700/50">
+          <h2 class="text-base font-bold text-slate-900 dark:text-white">{{ 'profile.personalInfo' | translate }}</h2>
+        </div>
+
+        <div *ngIf="isEditing(); else viewPersonalInfo" class="p-6 space-y-4" [formGroup]="editForm">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">{{ 'profile.nom' | translate }}</label>
+              <input type="text" formControlName="nom"
+                class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1d4b99]" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">{{ 'profile.prenom' | translate }}</label>
+              <input type="text" formControlName="prenom"
+                class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1d4b99]" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">{{ 'profile.email' | translate }}</label>
+            <input type="email" formControlName="email"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1d4b99]" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">{{ 'profile.password' | translate }}</label>
+            <div class="relative">
+              <input [type]="showPassword() ? 'text' : 'password'" formControlName="motDePasse"
+                class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1d4b99] pr-10" />
+              <button type="button" (click)="showPassword.set(!showPassword())"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 transition-colors flex items-center justify-center">
+                <lucide-icon [name]="showPassword() ? 'eye-off' : 'eye'" class="w-4 h-4"></lucide-icon>
+              </button>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">{{ 'profile.phone' | translate }}</label>
+              <input type="text" formControlName="telephone"
+                class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1d4b99]" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Date de naissance</label>
+              <input type="date" formControlName="dateNaissance"
+                class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1d4b99]" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">CIN</label>
+              <input type="text" formControlName="CIN"
+                class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1d4b99]" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Passeport</label>
+              <input type="text" formControlName="passport"
+                class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1d4b99]" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">{{ 'profile.address' | translate }}</label>
+             <input type="text" formControlName="adresse"
+               class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1d4b99]" />
+           </div>
+             <div>
+             <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Pays</label>
+             <input type="text" formControlName="pays"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1d4b99]" />
+          </div>
+        </div>
+
+        <ng-template #viewPersonalInfo>
+          <div class="divide-y divide-slate-100 dark:divide-slate-700">
+            <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              <span class="text-sm text-slate-500 dark:text-slate-400">{{ 'profile.nom' | translate }}</span>
+              <span class="text-sm font-medium text-slate-900 dark:text-white">{{ profileData().nom }}</span>
+            </div>
+            <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              <span class="text-sm text-slate-500 dark:text-slate-400">{{ 'profile.prenom' | translate }}</span>
+              <span class="text-sm font-medium text-slate-900 dark:text-white">{{ profileData().prenom }}</span>
+            </div>
+            <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              <span class="text-sm text-slate-500 dark:text-slate-400">{{ 'profile.email' | translate }}</span>
+              <span class="text-sm font-medium text-[#1d4b99]">{{ profileData().email }}</span>
+            </div>
+            <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              <span class="text-sm text-slate-500 dark:text-slate-400">{{ 'profile.password' | translate }}</span>
+              <div class="flex items-center gap-3">
+                <span class="text-sm font-medium text-slate-900 dark:text-white">{{ showPassword() ? profileData().motDePasse : '********' }}</span>
+                <button type="button" (click)="showPassword.set(!showPassword())"
+                  class="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 transition-colors flex items-center justify-center">
+                  <lucide-icon [name]="showPassword() ? 'eye-off' : 'eye'" class="w-4 h-4"></lucide-icon>
+                </button>
+              </div>
+            </div>
+            <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              <span class="text-sm text-slate-500 dark:text-slate-400">{{ 'profile.phone' | translate }}</span>
+              <span class="text-sm font-medium text-slate-900 dark:text-white">{{ profileData().telephone }}</span>
+            </div>
+            <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              <span class="text-sm text-slate-500 dark:text-slate-400">Date de naissance</span>
+              <span class="text-sm font-medium text-slate-900 dark:text-white">{{ formatDate(profileData().dateNaissance) }}</span>
+            </div>
+            <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              <span class="text-sm text-slate-500 dark:text-slate-400">CIN</span>
+              <span class="text-sm font-medium text-slate-900 dark:text-white">{{ profileData().CIN || '-' }}</span>
+            </div>
+            <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              <span class="text-sm text-slate-500 dark:text-slate-400">Passeport</span>
+              <span class="text-sm font-medium text-slate-900 dark:text-white">{{ profileData().passport || '-' }}</span>
+            </div>
+            <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              <span class="text-sm text-slate-500 dark:text-slate-400">{{ 'profile.address' | translate }}</span>
+              <span class="text-sm font-medium text-slate-900 dark:text-white text-right max-w-[200px] truncate">{{
+                profileData().adresse }}</span>
+            </div>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Academic Info -->
+      <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm h-fit">
+        <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-700/50">
+          <h2 class="text-base font-bold text-slate-900 dark:text-white">{{ 'profile.academicInfo' | translate }}</h2>
+        </div>
+        <div class="divide-y divide-slate-100 dark:divide-slate-700">
+         
+          <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+            <span class="text-sm text-slate-500 dark:text-slate-400">{{ 'profile.universite' | translate }}</span>
+            <span class="text-sm font-medium text-slate-900 dark:text-white">{{ profileData().universite }}</span>
+          </div>
+       
+          <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+            <span class="text-sm text-slate-500 dark:text-slate-400">{{ 'profile.field' | translate }}</span>
+            <span class="text-sm font-medium text-slate-900 dark:text-white">{{ profileData().diplomeSouhaite }}</span>
+           </div>
+           <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+             <span class="text-sm text-slate-500 dark:text-slate-400">{{ 'profile.niveau' | translate }}</span>
+             <span class="text-sm font-medium text-slate-900 dark:text-white">{{ profileData().niveau }}</span>
+          </div>
+          <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+            <span class="text-sm text-slate-500 dark:text-slate-400">Cours</span>
+            <span class="text-sm font-medium text-slate-900 dark:text-white">Cours de jour</span>
+          </div>
+          <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+            <span class="text-sm text-slate-500 dark:text-slate-400">{{ 'profile.diplomeSouhaite' | translate }}</span>
+             <span class="text-sm font-medium text-slate-900 dark:text-white">{{ profileData().diplomeSouhaite }}</span>
+          </div>
+          
+          <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+            <span class="text-sm text-slate-500 dark:text-slate-400">Année académique</span>
+            <span class="text-sm font-medium text-slate-900 dark:text-white">2024 / 2025</span>
+          </div>
+              <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+            <span class="text-sm text-slate-500 dark:text-slate-400">Diplome obtenu</span>
+             <span class="text-sm font-medium text-slate-900 dark:text-white">{{ profileData().dernierDiplomeObtenu }}</span>
+          </div>
+           <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+            <span class="text-sm text-slate-500 dark:text-slate-400">Année obtenuation </span>
+            <span class="text-sm font-medium text-slate-900 dark:text-white">{{ profileData().anneeObtention }}</span>
+           </div>
+         </div>
+       </div>
+     </div>
+
+     <!-- Emails Tab -->
+    <div *ngSwitchCase="'emails'" class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+      <div class="p-6 border-b border-slate-100 dark:border-slate-700">
+        <h2 class="text-lg font-bold text-slate-900 dark:text-white">{{ 'profile.generatedEmails' | translate }}</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Historique de vos emails générés</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+          <thead class="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700">
+            <tr>
+              <th class="px-6 py-4 font-medium">Type</th>
+              <th class="px-6 py-4 font-medium">Destinataire</th>
+              <th class="px-6 py-4 font-medium">Date</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+            <tr *ngFor="let email of generatedEmails()" class="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+               <td class="px-6 py-4">
+                 <span class="font-medium text-slate-900 dark:text-white">{{ email.object }}</span>
+               </td>
+               <td class="px-6 py-4 text-slate-600 dark:text-slate-400">{{ email.destinataire }}</td>
+               <td class="px-6 py-4 text-slate-500 dark:text-slate-400">{{ email.idEmail }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

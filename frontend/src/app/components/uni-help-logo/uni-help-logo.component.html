@@ -1,0 +1,20 @@
+<div class="flex items-center gap-2.5">
+  <div
+    [ngClass]="sizeClasses"
+    class="rounded-2xl flex items-center justify-center shadow-lg"
+    [style.backgroundColor]="color"
+    [style.boxShadow]="'0 10px 15px -3px ' + color + '40'"
+  >
+    <lucide-icon
+      [name]="iconName"
+      [class]="iconSizeClasses + ' text-white'"
+    ></lucide-icon>
+  </div>
+  <span
+    *ngIf="showText"
+    [ngClass]="textSizeClasses"
+    class="font-bold text-slate-900 dark:text-white tracking-tight"
+  >
+    UniHelp
+  </span>
+</div>

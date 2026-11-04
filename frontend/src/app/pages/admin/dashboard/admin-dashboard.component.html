@@ -1,0 +1,147 @@
+<div class="space-y-8 font-sans pb-12 bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div
+      *ngFor="let stat of stats"
+      [@fadeInUp]
+      class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 flex items-center space-x-4 hover:shadow-md transition-shadow"
+    >
+      <div [class]="'p-3 rounded-lg ' + stat.bg">
+        <lucide-icon
+          [name]="stat.icon"
+          [class]="'w-6 h-6 ' + stat.color"
+          [style.fill]="stat.fill ? 'currentColor' : 'none'"
+        ></lucide-icon>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-slate-500 dark:text-slate-400">{{ stat.label | translate }}</p>
+        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">{{ stat.value }}</h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Chart Section -->
+    <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex flex-col min-h-[400px]">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white">Inscriptions</h2>
+          <p class="text-sm text-slate-500 dark:text-slate-400">Évolution des nouvelles inscriptions</p>
+        </div>
+        <div class="flex bg-slate-100 dark:bg-slate-700 p-1.5 rounded-xl">
+          <button
+            (click)="setChartTab('semaine')"
+            class="px-4 py-1.5 text-sm font-medium rounded-lg transition-all duration-200"
+            [class.text-white]="chartTab() === 'semaine'"
+            [class.shadow-sm]="chartTab() === 'semaine'"
+            [ngClass]="{'text-slate-500 dark:text-slate-400': chartTab() !== 'semaine'}"
+            [style.backgroundColor]="chartTab() === 'semaine' ? '#1d4b99' : 'transparent'"
+          >
+            Cette semaine
+          </button>
+          <button
+            (click)="setChartTab('mois')"
+            class="px-4 py-1.5 text-sm font-medium rounded-lg transition-all duration-200"
+            [class.text-white]="chartTab() === 'mois'"
+            [class.shadow-sm]="chartTab() === 'mois'"
+            [ngClass]="{'text-slate-500 dark:text-slate-400': chartTab() !== 'mois'}"
+            [style.backgroundColor]="chartTab() === 'mois' ? '#1d4b99' : 'transparent'"
+          >
+            Ce mois
+          </button>
+        </div>
+      </div>
+
+      <!-- Chart.js Canvas -->
+      <div class="flex-1 w-full relative mt-4" style="min-height: 280px;">
+        <canvas id="inscriptionsChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Recent Students Table -->
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
+      <div class="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+        <h2 class="text-lg font-bold text-slate-900 dark:text-white">{{ 'admin.recentStudents' | translate }}</h2>
+        <button routerLink="/admin/students" class="text-sm text-[#1d4b99] font-medium hover:underline">Voir tout</button>
+      </div>
+      <div class="flex-1 overflow-auto">
+        <table class="w-full text-sm text-left">
+          <thead class="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-700/50">
+            <tr>
+              <th class="px-6 py-3 font-bold">{{ 'admin.student' | translate }}</th>
+              <th class="px-6 py-3 font-bold">{{ 'admin.status' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+            <tr *ngFor="let student of recentStudents" class="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              <td class="px-6 py-4">
+                <div class="font-bold text-slate-900 dark:text-white">{{ student.name }}</div>
+                <div class="text-slate-500 dark:text-slate-400 text-xs">{{ student.field }}</div>
+              </td>
+              <td class="px-6 py-4">
+                <span
+                  class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                  [ngClass]="{
+                    'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400': student.status === 'Actif',
+                    'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400': student.status === 'En attente',
+                    'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300': student.status === 'Inactif'
+                  }"
+                >
+                  <lucide-icon [name]="student.status === 'Actif' ? 'check-circle' : 'x-circle'"
+                    class="w-3.5 h-3.5 mr-1.5"></lucide-icon>
+                  {{ student.status }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Row -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- FAQ Stats -->
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+      <div class="p-6 border-b border-slate-100 dark:border-slate-700">
+        <h2 class="text-lg font-bold text-slate-900 dark:text-white">{{ 'admin.frequentQuestions' | translate }}</h2>
+      </div>
+      <div class="p-4 space-y-2">
+        <div
+          *ngFor="let q of topQuestions"
+          class="flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-all group"
+        >
+          <div class="flex items-center gap-4">
+            <div [class]="'w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ' + q.bg">
+              <lucide-icon [name]="q.icon" [class]="'w-5 h-5 ' + q.color"></lucide-icon>
+            </div>
+            <span class="text-sm font-bold text-slate-700 dark:text-slate-300">{{ q.text }}</span>
+          </div>
+          <span class="text-xs font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 px-3 py-1.5 rounded-lg">
+            {{ q.count }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Categories Allocation -->
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+      <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-8">{{ 'admin.categoryAllocation' | translate }}</h2>
+      <div class="space-y-7">
+        <div *ngFor="let cat of categories">
+          <div class="flex justify-between items-end mb-2.5">
+            <span class="text-sm font-bold text-slate-600 dark:text-slate-300">{{ cat.name }}</span>
+            <span class="text-sm font-bold text-slate-400 dark:text-slate-500">{{ cat.percent }}%</span>
+          </div>
+          <div class="w-full h-2.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+            <div
+              class="h-full rounded-full transition-all duration-1000 ease-out"
+              [class]="cat.color"
+              [style.width.%]="cat.percent"
+            ></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

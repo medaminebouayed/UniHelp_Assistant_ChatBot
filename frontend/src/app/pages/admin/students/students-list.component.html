@@ -1,0 +1,317 @@
+<div class="space-y-6 relative font-sans transition-colors duration-200">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 dark:text-white">{{ 'admin.students' | translate }}</h1>
+    </div>
+  </div>
+
+  <!-- Filters & Search -->
+  <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col lg:flex-row gap-4">
+    <div class="relative flex-1">
+      <lucide-icon name="search"
+        class="w-5 h-5 absolute left-2 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500"></lucide-icon>
+      <input type="text" placeholder="{{ 'common.search' | translate }}..." [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event); currentPage.set(1)" [style.paddingLeft]="'3rem'"
+        class="w-full pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#1d4b99] focus:border-[#1d4b99] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
+    </div>
+
+    <div class="relative">
+      <button (click)="toggleFilter()"
+        class="flex items-center space-x-2 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors bg-white dark:bg-slate-800">
+        <lucide-icon name="filter" class="w-4 h-4"></lucide-icon>
+        <span>{{ 'common.filter' | translate }}</span>
+        <lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon>
+      </button>
+
+      <!-- Filter Dropdown -->
+      <div *ngIf="isFilterOpen()"
+        class="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-4 z-50 space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 uppercase">Université</label>
+          <select [ngModel]="uniFilter()" (ngModelChange)="uniFilter.set($event); currentPage.set(1)"
+            class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 focus:ring-2 focus:ring-[#1d4b99] outline-none text-slate-900 dark:text-white">
+            <option value="">Toutes les universités</option>
+            <option value="ISB">ISB</option>
+            <option value="IIT">IIT</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 uppercase">{{ 'admin.field' | translate }}</label>
+          <select [ngModel]="fieldFilter()" (ngModelChange)="fieldFilter.set($event); currentPage.set(1)"
+            class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 focus:ring-2 focus:ring-[#1d4b99] outline-none text-slate-900 dark:text-white">
+            <option value="">Toutes les filières</option>
+            <option *ngFor="let f of fields()" [value]="f">{{ f }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 uppercase">{{ 'admin.status' | translate }}</label>
+          <select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event); currentPage.set(1)"
+            class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 focus:ring-2 focus:ring-[#1d4b99] outline-none text-slate-900 dark:text-white">
+            <option value="">Tous les statuts</option>
+            <option value="Actif">Actif</option>
+            <option value="Inactif">Inactif</option>
+          </select>
+        </div>
+        <button (click)="clearFilters()"
+          class="w-full px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border-t border-slate-100 dark:border-slate-700 pt-3">
+          Réinitialiser les filtres
+        </button>
+      </div>
+      <!-- Overlay to close filter -->
+      <div *ngIf="isFilterOpen()" (click)="toggleFilter()" class="fixed inset-0 z-40 bg-transparent"></div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left">
+        <thead class="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700">
+          <tr>
+            <th class="px-6 py-4 font-medium">CIN</th>
+            <th class="px-6 py-4 font-medium">{{ 'admin.student' | translate }}</th>
+            <th class="px-6 py-4 font-medium">Université</th>
+            <th class="px-6 py-4 font-medium">{{ 'admin.field' | translate }} / Niveau</th>
+            <th class="px-6 py-4 font-medium">{{ 'admin.status' | translate }}</th>
+            <th class="px-6 py-4 font-medium text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+          <tr *ngFor="let student of paginatedStudents()" class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+            <td class="px-6 py-4 text-slate-500 dark:text-slate-400 font-mono">{{ student.studentId }}</td>
+            <td class="px-6 py-4">
+              <div class="flex items-center space-x-3">
+                <div
+                  class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-[#1d4b99] font-bold text-xs border border-slate-200 dark:border-slate-600 overflow-hidden">
+                  <img *ngIf="student.photo" [src]="student.photo" class="w-full h-full object-cover" />
+                  <span *ngIf="!student.photo">{{ student.name.substring(0, 2).toUpperCase() }}</span>
+                </div>
+                <div>
+                  <div class="font-medium text-slate-900 dark:text-white">{{ student.name }}</div>
+                  <div class="text-slate-500 dark:text-slate-400 text-xs">{{ student.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <span
+                class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-600">
+                {{ student.uni }}
+              </span>
+            </td>
+            <td class="px-6 py-4">
+              <div class="text-slate-900 dark:text-white font-medium">{{ student.field }}</div>
+              <div class="text-slate-500 dark:text-slate-400 text-xs">{{ student.level }}</div>
+            </td>
+            <td class="px-6 py-4">
+              <span
+                class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                [ngClass]="{
+                  'bg-emerald-100 text-emerald-700': student.status === 'Actif',
+                  'bg-amber-100 text-amber-700': student.status === 'En attente',
+                  'bg-slate-100 text-slate-700': student.status === 'Inactif'
+                }">
+                <lucide-icon [name]="student.status === 'Actif' ? 'check-circle' : 'x-circle'"
+                  class="w-3.5 h-3.5 mr-1.5"></lucide-icon>
+                {{ student.status }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-right">
+              <button (click)="viewProfile(student)"
+                class="p-2 text-[#1d4b99] hover:bg-teal-50 dark:hover:bg-teal-900/30 rounded-lg transition-colors">
+                <lucide-icon name="eye" class="w-5 h-5"></lucide-icon>
+              </button>
+              <button (click)="toggleActive(student)"
+                class="p-2 ml-1 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                [title]="student.status === 'Actif' ? 'Désactiver' : 'Activer'">
+                <lucide-icon [name]="student.status === 'Actif' ? 'user-minus' : 'user-check'" class="w-5 h-5"></lucide-icon>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="paginatedStudents().length === 0">
+            <td colspan="6" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 italic bg-slate-50/50 dark:bg-slate-700/30">
+              Aucun étudiant trouvé avec ces critères.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div
+      class="p-4 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-700/50">
+      <span>Affichage de {{ startIndex() + 1 }} à {{ endIndex() }} sur {{ filteredCount() }} étudiants</span>
+      <div class="flex items-center gap-1">
+        <button (click)="prevPage()" [disabled]="currentPage() === 1"
+          class="px-2 py-1 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 disabled:opacity-50 text-slate-700 dark:text-slate-300">&lt;</button>
+        <div class="flex gap-1">
+          <button *ngFor="let p of pageNumbers()" (click)="goToPage(p)"
+            class="w-8 h-8 rounded-md transition-all font-medium" [class.bg-[#1d4b99]]="currentPage() === p"
+            [class.text-white]="currentPage() === p" [class.hover:bg-slate-200]="currentPage() !== p">{{ p }}</button>
+        </div>
+        <button (click)="nextPage()" [disabled]="currentPage() === totalPages()"
+          class="px-2 py-1 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 disabled:opacity-50 text-slate-700 dark:text-slate-300">&gt;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student Profile Modal -->
+  <div *ngIf="selectedStudent()">
+    <div (click)="selectedStudent.set(null)" class="fixed inset-0 bg-slate-900/50 dark:bg-black/70 backdrop-blur-sm z-50" [@fadeIn]>
+    </div>
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="w-full max-w-4xl bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]"
+        [@modalSlide]>
+        <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-slate-50 dark:bg-slate-700/50 shrink-0">
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white">Profil de l'étudiant</h3>
+          <button (click)="selectedStudent.set(null)"
+            class="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+            <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+          </button>
+        </div>
+
+        <div class="overflow-y-auto overflow-x-hidden">
+          <div class="h-32 bg-slate-800 relative">
+            <div class="absolute inset-0 opacity-40 bg-cover bg-center"
+                 style="background-image: url('assets/images/couverture2.jpg')">
+            </div>
+          </div>
+
+          <div class="px-6 pb-6 relative">
+            <div class="flex items-end -mt-12 mb-4">
+              <div
+                class="w-24 h-24 rounded-full border-4 border-white dark:border-slate-700 shadow-lg bg-white dark:bg-slate-800 flex items-center justify-center text-[#1d4b99] text-3xl font-bold overflow-hidden">
+                <img *ngIf="selectedStudent()?.photo" [src]="selectedStudent()?.photo" class="w-full h-full object-cover" />
+                <span *ngIf="!selectedStudent()?.photo">{{ selectedStudent()?.name?.substring(0, 1) }}</span>
+              </div>
+            </div>
+
+            <div>
+              <h2 class="text-2xl font-bold text-slate-900 dark:text-white">{{ selectedStudent()?.name }}</h2>
+              <div class="flex items-center mt-1 mb-6">
+                <p class="text-slate-500 dark:text-slate-400 flex items-center text-sm mr-3">
+                  <lucide-icon name="mail" class="w-4 h-4 mr-2"></lucide-icon>
+                  {{ selectedStudent()?.email }}
+                </p>
+                <!-- <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                  [ngClass]="{
+                      'bg-emerald-100 text-emerald-700': selectedStudent()?.status === 'Actif',
+                      'bg-amber-100 text-amber-700': selectedStudent()?.status === 'En attente',
+                      'bg-slate-100 text-slate-700': selectedStudent()?.status === 'Inactif'
+                    }">
+                  <lucide-icon [name]="selectedStudent()?.status === 'Actif' ? 'check-circle' : 'x-circle'"
+                    class="w-3.5 h-3.5 mr-1.5"></lucide-icon>
+                  {{ selectedStudent()?.status }}
+                </span> -->
+              </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+              <!-- Informations personnelles -->
+              <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm h-fit">
+                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-700/50">
+                  <h2 class="text-base font-bold text-slate-900 dark:text-white">Informations personnelles</h2>
+                </div>
+                <div class="divide-y divide-slate-100 dark:divide-slate-700">
+                  <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <span class="text-sm text-slate-500 dark:text-slate-400">Nom</span>
+                    <span class="text-sm font-medium text-slate-900 dark:text-white">{{ selectedStudent()?.name?.split(' ')?.[1] ||
+                      selectedStudent()?.name }}</span>
+                  </div>
+                  <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <span class="text-sm text-slate-500 dark:text-slate-400">Prénom</span>
+                    <span class="text-sm font-medium text-slate-900 dark:text-white">{{ selectedStudent()?.name?.split(' ')?.[0]
+                      }}</span>
+                  </div>
+                  <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <span class="text-sm text-slate-500 dark:text-slate-400">Email universitaire</span>
+                    <span class="text-sm font-medium text-[#1d4b99]">{{ selectedStudent()?.email }}</span>
+                  </div>
+
+                  <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <span class="text-sm text-slate-500 dark:text-slate-400">Téléphone</span>
+                    <span class="text-sm font-medium text-slate-900 dark:text-white">{{ selectedStudent()?.phone }}</span>
+                  </div>
+                  <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <span class="text-sm text-slate-500 dark:text-slate-400">Date de naissance</span>
+                    <span class="text-sm font-medium text-slate-900 dark:text-white">{{ selectedStudent()?.birthDate }}</span>
+                  </div>
+                  <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <span class="text-sm text-slate-500 dark:text-slate-400">CIN</span>
+                    <span class="text-sm font-medium text-slate-900 dark:text-white">{{ selectedStudent()?.cin || '-' }}</span>
+                  </div>
+                  <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <span class="text-sm text-slate-500 dark:text-slate-400">Passeport</span>
+                    <span class="text-sm font-medium text-slate-900 dark:text-white">{{ selectedStudent()?.passport || '-' }}</span>
+                  </div>
+                  <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <span class="text-sm text-slate-500 dark:text-slate-400">Adresse</span>
+                    <span class="text-sm font-medium text-slate-900 dark:text-white text-right max-w-[200px] truncate">{{
+                      selectedStudent()?.address }}</span>
+                  </div>
+                  <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <span class="text-sm text-slate-500 dark:text-slate-400">Pays</span>
+                    <span class="text-sm font-medium text-slate-900 dark:text-white text-right max-w-[200px] truncate">{{
+                      selectedStudent()?.country }}</span>
+                  </div>
+                  <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <span class="text-sm text-slate-500 dark:text-slate-400">Connu par</span>
+                    <span class="text-sm font-medium text-slate-900 dark:text-white">{{ selectedStudent()?.knownBy }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Informations académiques -->
+              <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm h-fit">
+                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-700/50">
+                  <h2 class="text-base font-bold text-slate-900 dark:text-white">Informations académiques</h2>
+                </div>
+                <div class="divide-y divide-slate-100 dark:divide-slate-700">
+                  <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <span class="text-sm text-slate-500 dark:text-slate-400">Université</span>
+                    <span class="text-sm font-medium text-slate-900 dark:text-white">{{ selectedStudent()?.uni }}</span>
+                  </div>
+                  <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <span class="text-sm text-slate-500 dark:text-slate-400">{{ 'admin.field' | translate }}</span>
+                    <span class="text-sm font-medium text-slate-900 dark:text-white">{{ selectedStudent()?.field }}</span>
+                  </div>
+                  <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <span class="text-sm text-slate-500 dark:text-slate-400">Niveau</span>
+                    <span class="text-sm font-medium text-slate-900 dark:text-white">{{ selectedStudent()?.level }}</span>
+                  </div>
+                  <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <span class="text-sm text-slate-500 dark:text-slate-400">Cours</span>
+                    <span class="text-sm font-medium text-slate-900 dark:text-white">{{ selectedStudent()?.courseTime }}</span>
+                  </div>
+                  <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <span class="text-sm text-slate-500 dark:text-slate-400">Date d'inscription</span>
+                    <span class="text-sm font-medium text-slate-900 dark:text-white">{{ selectedStudent()?.date }}</span>
+                  </div>
+                  <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <span class="text-sm text-slate-500 dark:text-slate-400">Année académique</span>
+                    <span class="text-sm font-medium text-slate-900 dark:text-white">{{ selectedStudent()?.academicYear }}</span>
+                  </div>
+                  <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <span class="text-sm text-slate-500 dark:text-slate-400">Diplome obtenu</span>
+                    <span class="text-sm font-medium text-slate-900 dark:text-white">{{ selectedStudent()?.lastDiploma }}</span>
+                  </div>
+                  <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <span class="text-sm text-slate-500 dark:text-slate-400">Année obtenuation</span>
+                    <span class="text-sm font-medium text-slate-900 dark:text-white">{{ selectedStudent()?.diplomaYear }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 flex justify-end shrink-0">
+          <button (click)="selectedStudent.set(null)"
+            class="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 transition-colors">
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

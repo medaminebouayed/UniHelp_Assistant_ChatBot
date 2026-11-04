@@ -1,0 +1,106 @@
+<div class="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col transition-colors duration-200">
+  <!-- Top Header -->
+  <header class="sticky top-0 z-50 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 shrink-0 transition-colors duration-200">
+    <div class="max-w-7xl mx-auto h-full px-4 md:px-6 flex items-center justify-between">
+      
+      <!-- Left - Logo -->
+      <div class="flex items-center gap-2.5 shrink-0">
+        <lucide-icon name="graduation-cap" class="w-7 h-7" [style.color]="'#1d4b99'"></lucide-icon>
+        <span class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+          UniHelp
+        </span>
+      </div>
+
+      <!-- Center - Nav (desktop) -->
+      <nav class="hidden md:flex items-center space-x-1 h-full">
+        <a
+          *ngFor="let item of navItems"
+          [routerLink]="item.path"
+          routerLinkActive="active-link"
+          #rla="routerLinkActive"
+          class="relative px-4 flex items-center h-full text-sm font-medium transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+          [ngClass]="{'text-[#1d4b99] dark:text-[#4b9fff]': rla.isActive}"
+        >
+          {{ item.labelKey | translate }}
+          <span
+            *ngIf="rla.isActive"
+            class="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-[#1d4b99]"
+          ></span>
+        </a>
+      </nav>
+
+      <!-- Right - Avatar + Mobile menu -->
+      <div class="flex items-center space-x-3">
+        <!-- Profile dropdown -->
+        <div class="relative flex items-center">
+          <span class="hidden md:block text-sm font-medium text-slate-700 dark:text-slate-300 mr-3">
+            {{ user()?.name }}
+          </span>
+          <button
+            (click)="toggleProfile()"
+            class="w-9 h-9 rounded-full text-white flex items-center justify-center text-sm font-bold transition-colors bg-[#1d4b99] hover:bg-[#153c80] overflow-hidden"
+          >
+            <img *ngIf="user()?.avatar" [src]="user()?.avatar" alt="Avatar" class="w-full h-full object-cover" />
+            <span *ngIf="!user()?.avatar">{{ initials() }}</span>
+          </button>
+
+          <!-- Profile Dropdown Menu -->
+          <div *ngIf="isProfileOpen()" class="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 py-2 z-50">
+            <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+              <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ user()?.name }}</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ user()?.email }}</p>
+            </div>
+            <button (click)="navigateTo('/student/profile')" class="w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center space-x-2">
+              <lucide-icon name="user" class="w-4 h-4 text-slate-400 dark:text-slate-500"></lucide-icon>
+              <span>{{ 'profile.title' | translate }}</span>
+            </button>
+            <button (click)="navigateTo('/student/settings')" class="w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center space-x-2">
+              <lucide-icon name="settings" class="w-4 h-4 text-slate-400 dark:text-slate-500"></lucide-icon>
+              <span>{{ 'settings.title' | translate }}</span>
+            </button>
+            <button (click)="handleLogout()" class="w-full text-left px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-2">
+              <lucide-icon name="log-out" class="w-4 h-4"></lucide-icon>
+              <span>{{ 'nav.logout' | translate }}</span>
+            </button>
+          </div>
+          <!-- Overlay to close dropdown -->
+          <div *ngIf="isProfileOpen()" (click)="toggleProfile()" class="fixed inset-0 z-40 bg-transparent"></div>
+        </div>
+
+        <!-- Mobile hamburger -->
+        <button
+          class="md:hidden text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white"
+          (click)="toggleMobileMenu()"
+        >
+          <lucide-icon [name]="isMobileMenuOpen() ? 'x' : 'menu'" class="w-6 h-6"></lucide-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile nav dropdown -->
+    <div *ngIf="isMobileMenuOpen()" class="md:hidden bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-lg">
+      <nav class="px-4 py-3 space-y-1">
+        <a
+          *ngFor="let item of navItems"
+          [routerLink]="item.path"
+          routerLinkActive="bg-teal-50 dark:bg-slate-700 text-[#1d4b99]"
+          (click)="toggleMobileMenu()"
+          class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+        >
+          <lucide-icon [name]="item.icon" class="w-5 h-5"></lucide-icon>
+          <span>{{ item.labelKey | translate }}</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-auto">
+    <div class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+
+  <!-- Floating Chatbot Button -->
+  <app-chatbot-fab></app-chatbot-fab>
+</div>

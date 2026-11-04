@@ -1,0 +1,18 @@
+Recommendations to Improve
+Quick fixes (try first):
+# 1. Use page_content instead of enriched_content for reranker
+# 2. Increase rerank context to 1024 chars
+# 3. Increase top_k_rerank to 150
+Medium effort:
+- Tune RRF weights — try --dense-weight 0.7 --sparse-weight 0.3 or grid search
+- Tune RRF k — try --rrf-k 30 or --rrf-k 100
+- Generate mobility-specific synthetic data to improve that category
+- Query expansion for short queries (add synonyms, translate keywords)
+Higher effort:
+- Replace BM25 with SPLADE for learned sparse retrieval (better than BM25, especially for French)
+- Fine-tune the reranker on your domain with a small set of labeled examples
+- HyDE (Hypothetical Document Embeddings) — generate a hypothetical answer first, then search
+- ColBERT-style late interaction instead of cross-encoder reranking
+Tuning grid to try:
+--dense-weight 0.7 --sparse-weight 0.3 --rrf-k 30  (boosts dense)
+--dense-weight 0.5 --sparse-weight 0.5 --rrf-k 100 (more hybrid)

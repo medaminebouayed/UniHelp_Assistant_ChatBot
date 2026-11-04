@@ -1,0 +1,217 @@
+<div class="max-w-6xl mx-auto transition-colors duration-200">
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">{{ 'emails.title' | translate }}</h1>
+    <p class="text-slate-500 dark:text-slate-400 mt-1 text-sm">
+      {{ 'emails.subtitle' | translate }}
+    </p>
+  </div>
+
+  <!-- Step Indicator -->
+  <div class="flex items-center mb-10 overflow-x-auto pb-2">
+    <ng-container *ngFor="let s of steps; let i = index">
+      <div class="flex items-center space-x-2 shrink-0">
+        <div
+          class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors"
+          [class.bg-[#1d4b99]]="step() > s.id || (step() === s.id && isStepValid(s.id))"
+          [class.text-white]="step() > s.id || (step() === s.id && isStepValid(s.id))"
+          [class.bg-white]="step() === s.id && !isStepValid(s.id)"
+          [class.border-2]="step() === s.id && !isStepValid(s.id)"
+          [class.border-[#1d4b99]]="step() === s.id && !isStepValid(s.id)"
+          [class.text-[#1d4b99]]="step() === s.id && !isStepValid(s.id)"
+          [class.bg-slate-200]="step() < s.id"
+          [class.text-slate-500]="step() < s.id"
+          [class.dark:bg-slate-700]="step() < s.id"
+          [class.dark:text-slate-400]="step() < s.id"
+        >
+          <lucide-icon *ngIf="step() > s.id" name="check" class="w-4 h-4"></lucide-icon>
+          <span *ngIf="step() <= s.id">{{ s.id }}</span>
+        </div>
+        <span
+          class="text-sm font-medium"
+          [class.text-slate-900]="step() >= s.id"
+          [class.text-slate-400]="step() < s.id"
+          [class.dark:text-white]="step() >= s.id"
+          [class.dark:text-slate-500]="step() < s.id"
+        >
+          {{ s.id === 1 ? ('emails.step1' | translate) : s.id === 2 ? ('emails.step2' | translate) : s.id === 3 ? ('emails.step3' | translate) : ('emails.preview' | translate) }}
+        </span>
+      </div>
+      <div
+        *ngIf="i < steps.length - 1"
+        class="flex-1 h-1 rounded-full min-w-[40px] max-w-[80px] mx-2 transition-colors"
+        [class.bg-[#1d4b99]]="step() > s.id"
+        [class.bg-slate-200]="step() <= s.id"
+        [class.dark:bg-slate-700]="step() <= s.id"
+      ></div>
+    </ng-container>
+  </div>
+
+  <!-- Two Column Layout -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Left - Form -->
+    <div class="bg-white dark:bg-slate-800 p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col min-h-[400px] transition-colors duration-200">
+      <div class="flex-1">
+        <div *ngIf="step() === 1" class="space-y-4">
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-4">{{ 'emails.step1' | translate }}</h2>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{{ 'emails.selectType' | translate }}</label>
+          <select
+            [(ngModel)]="formData().type"
+            name="type"
+            class="w-full px-4 py-3.5 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-[#1d4b99] focus:outline-none bg-slate-50 dark:bg-slate-900 hover:bg-white dark:hover:bg-slate-800 transition-colors"
+          >
+            <option *ngFor="let t of emailTypes" [value]="t.value" [disabled]="t.value === ''">
+              {{ t.label }}
+            </option>
+          </select>
+        </div>
+
+        <div *ngIf="step() === 2" class="space-y-4">
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-4">{{ 'emails.step2' | translate }}</h2>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{{ 'emails.step2' | translate }}</label>
+          <select
+            [(ngModel)]="formData().recipient"
+            name="recipient"
+            class="w-full px-4 py-3.5 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-[#1d4b99] focus:outline-none bg-slate-50 dark:bg-slate-900 hover:bg-white dark:hover:bg-slate-800 transition-colors"
+          >
+            <option *ngFor="let r of recipients" [value]="r.value" [disabled]="r.value === ''">
+              {{ r.label }}
+            </option>
+          </select>
+        </div>
+
+        <div *ngIf="step() === 3" class="space-y-4">
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-4">{{ 'emails.step3' | translate }}</h2>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{{ 'emails.motif' | translate }}</label>
+          <textarea
+            [(ngModel)]="formData().motif"
+            name="motif"
+            placeholder="Ex : pour dossier de bourse CNSS, absence pour raison médicale..."
+            rows="6"
+            class="w-full px-4 py-3.5 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-[#1d4b99] focus:outline-none resize-none bg-slate-50 dark:bg-slate-900 hover:bg-white dark:hover:bg-slate-800 transition-colors"
+          ></textarea>
+        </div>
+
+        <div *ngIf="step() === 4" class="flex flex-col items-center justify-center h-full text-center space-y-4">
+          <div class="w-16 h-16 bg-emerald-100 dark:bg-emerald-800 text-emerald-600 dark:text-emerald-300 rounded-full flex items-center justify-center mb-2">
+            <lucide-icon name="check" class="w-8 h-8"></lucide-icon>
+          </div>
+          <h2 class="text-xl font-bold text-slate-900 dark:text-white">{{ 'emails.success' | translate }}</h2>
+          <p class="text-slate-500 dark:text-slate-400 text-sm max-w-xs mx-auto">
+            {{ 'emails.successDesc' | translate }}
+          </p>
+          <button (click)="reset()" class="mt-4 text-sm font-medium text-[#1d4b99] hover:underline">
+            {{ 'emails.createNew' | translate }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div *ngIf="step() < 4" class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
+        <button
+          (click)="handleBack()"
+          [disabled]="step() === 1"
+          class="flex items-center px-4 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+          [class.opacity-0]="step() === 1"
+          [class.pointer-events-none]="step() === 1"
+        >
+          <lucide-icon name="chevron-left" class="w-4 h-4 mr-1"></lucide-icon> {{ 'emails.back' | translate }}
+        </button>
+
+        <button
+          *ngIf="step() < 3"
+          (click)="handleNext()"
+          [disabled]="!isStepValid(step())"
+          class="flex items-center px-6 py-2.5 text-sm font-medium rounded-xl text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm bg-[#1d4b99]"
+        >
+          {{ 'emails.next' | translate }} <lucide-icon name="chevron-right" class="w-4 h-4 ml-1"></lucide-icon>
+        </button>
+
+        <button
+          *ngIf="step() === 3"
+          (click)="generate()"
+          [disabled]="!isStepValid(step()) || isGenerating()"
+          class="flex items-center px-6 py-2.5 text-sm font-medium rounded-xl text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm bg-[#1d4b99]"
+        >
+          <lucide-icon *ngIf="isGenerating()" name="refresh-cw" class="w-4 h-4 mr-2 animate-spin"></lucide-icon>
+          <lucide-icon *ngIf="!isGenerating()" name="sparkles" class="w-4 h-4 mr-2"></lucide-icon>
+          {{ isGenerating() ? ('common.loading' | translate) : ('emails.generate' | translate) }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Right - Preview -->
+    <div class="flex flex-col h-full min-h-[400px]">
+      <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm flex flex-col h-full overflow-hidden transition-colors duration-200">
+        <div *ngIf="step() < 4 || !generatedEmail()" class="flex-1 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 p-12 text-center bg-slate-50/30 dark:bg-slate-900/30">
+          <lucide-icon name="sparkles" class="w-12 h-12 mb-4 opacity-20"></lucide-icon>
+          <p class="text-sm font-medium">{{ 'emails.preview' | translate }}</p>
+        </div>
+
+        <div *ngIf="step() === 4 && generatedEmail()" class="p-6 md:p-8 text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap flex-1 overflow-y-auto bg-white dark:bg-slate-800">
+          <div *ngFor="let block of emailBlocks()" [ngSwitch]="block.type" class="mb-2">
+            <p *ngSwitchCase="'header'" class="text-slate-600 dark:text-slate-400">{{ block.content }}</p>
+            <div *ngSwitchCase="'subject'" class="mb-6 pb-4 border-b border-slate-100 dark:border-slate-700">
+              <strong class="text-slate-900 dark:text-white text-base">{{ block.content }}</strong>
+            </div>
+            <p *ngSwitchCase="'body'">
+              <ng-container *ngFor="let part of block.parts">
+                <strong *ngIf="part.bold" class="text-slate-900 dark:text-white">{{ part.text }}</strong>
+                <span *ngIf="!part.bold">{{ part.text }}</span>
+              </ng-container>
+            </p>
+            <br *ngSwitchCase="'br'" />
+          </div>
+        </div>
+
+        <!-- Bottom actions -->
+        <div *ngIf="step() === 4 && generatedEmail()" class="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 p-4 flex items-center justify-end space-x-3 transition-colors duration-200">
+          <button
+            (click)="copyToClipboard()"
+            class="flex items-center space-x-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+          >
+            <lucide-icon [name]="isCopied() ? 'check' : 'copy'" class="w-4 h-4" [class.text-emerald-600]="isCopied()"></lucide-icon>
+            <span>{{ isCopied() ? ('emails.copied' | translate) : ('emails.copy' | translate) }}</span>
+          </button>
+          <button
+            (click)="sendEmail()"
+            class="flex items-center space-x-2 px-5 py-2.5 text-white rounded-xl text-sm font-medium transition-colors shadow-sm bg-[#1d4b99] hover:bg-[#153c80]"
+          >
+            <lucide-icon name="send" class="w-4 h-4"></lucide-icon>
+            <span>{{ 'emails.send' | translate }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div *ngIf="isSentModalOpen()">
+    <div (click)="closeSentModal()" class="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm backdrop"></div>
+    
+    <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 pointer-events-none">
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-8 relative border border-emerald-100 dark:border-emerald-800 modal-content pointer-events-auto transition-colors duration-200">
+        <button (click)="closeSentModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-200 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700">
+          <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+        </button>
+
+        <div class="text-center">
+          <div class="mx-auto mb-6 flex items-center justify-center w-20 h-20 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border-4 border-emerald-100 dark:border-emerald-800">
+            <lucide-icon name="send" class="w-10 h-10 text-emerald-600"></lucide-icon>
+          </div>
+
+          <h3 class="mb-2 text-xl font-bold text-slate-900 dark:text-white">Email envoyé avec succès !</h3>
+          <p class="mb-8 text-slate-500 dark:text-slate-400 leading-relaxed">
+            Votre demande a bien été transmise au destinataire. Vous recevrez une réponse dans les plus brefs délais.
+          </p>
+
+          <button (click)="closeSentModal()"
+            class="w-full px-8 py-3 bg-[#1d4b99] hover:bg-[#153c80] text-white rounded-xl text-sm font-semibold transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-blue-500/20">
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

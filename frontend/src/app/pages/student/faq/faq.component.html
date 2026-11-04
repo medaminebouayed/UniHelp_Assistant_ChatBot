@@ -1,0 +1,139 @@
+<div class="max-w-6xl mx-auto pb-12 font-sans transition-colors duration-200">
+  <!-- Decorative Header -->
+  <div
+    class="relative -mx-4 md:-mx-8 px-4 md:px-8 pt-8 pb-12 mb-8 rounded-b-3xl transition-colors duration-200"
+    style="background: linear-gradient(to bottom, rgba(0, 175, 185, 0.1), white)"
+  >
+    <div class="text-center">
+      <h1 class="text-3xl md:text-4xl font-bold text-slate-800 dark:text-white mb-4">
+        {{ 'faq.title' | translate }}
+      </h1>
+      <p class="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+        {{ 'faq.subtitle' | translate }}
+      </p>
+
+      <div class="mt-8 max-w-xl mx-auto relative">
+        <lucide-icon name="search" class="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500"></lucide-icon>
+        <input
+          type="text"
+          placeholder="{{ 'faq.search' | translate }}"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+          [style.paddingLeft]="'3.5rem'"
+          class="w-full pr-4 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1d4b99] text-slate-900 dark:text-white"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- Categories -->
+  <div class="flex flex-wrap justify-center gap-2 mb-8">
+    <button
+      *ngFor="let category of categories"
+      (click)="setActiveCategory(category)"
+      class="px-4 py-2 rounded-full text-sm font-medium transition-colors border"
+      [class.bg-[#1d4b99]]="activeCategory() === category"
+      [class.text-white]="activeCategory() === category"
+      [class.bg-white]="activeCategory() !== category"
+      [class.text-slate-600]="activeCategory() !== category"
+      [class.border-slate-200]="activeCategory() !== category"
+      [class.hover:bg-slate-50]="activeCategory() !== category"
+      [class.dark:bg-slate-800]="activeCategory() !== category"
+      [class.dark:text-slate-300]="activeCategory() !== category"
+      [class.dark:border-slate-700]="activeCategory() !== category"
+      [class.dark:hover:bg-slate-700]="activeCategory() !== category"
+    >
+      {{ category === 'Tous' ? ('faq.all' | translate) : category }}
+    </button>
+  </div>
+
+  <!-- FAQ List -->
+  <div class="space-y-10 max-w-4xl mx-auto">
+    <div *ngIf="filteredFaqs().length === 0" class="text-center py-12 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+      <p class="text-slate-500 dark:text-slate-400">
+        Aucun résultat trouvé pour "{{ searchQuery() }}"
+      </p>
+    </div>
+
+    <div *ngFor="let section of filteredFaqs(); let sIdx = index">
+      <div class="flex items-center gap-2 mb-4 px-2">
+        <lucide-icon [name]="section.icon" class="w-5 h-5 text-slate-400 dark:text-slate-500"></lucide-icon>
+        <h2 class="text-xl font-bold text-slate-900 dark:text-white">
+          {{ section.category }}
+        </h2>
+      </div>
+      <div class="space-y-3">
+        <div
+          *ngFor="let item of section.questions; let qIdx = index"
+          class="bg-white dark:bg-slate-800 border rounded-xl overflow-hidden transition-all duration-200"
+          [class.shadow-sm]="isOpen(sIdx, qIdx)"
+          [class.border-slate-200]="!isOpen(sIdx, qIdx)"
+          [class.hover:border-slate-300]="!isOpen(sIdx, qIdx)"
+          [class.dark:border-slate-700]="!isOpen(sIdx, qIdx)"
+          [class.dark:hover:border-slate-600]="!isOpen(sIdx, qIdx)"
+          [style.borderLeft]="isOpen(sIdx, qIdx) ? '3px solid #1d4b99' : null"
+        >
+          <button
+            (click)="toggleAccordion(sIdx, qIdx)"
+            class="w-full px-6 py-4 flex items-center justify-between text-left focus:outline-none"
+          >
+            <div class="flex items-start gap-3 pr-4">
+              <lucide-icon
+                name="help-circle"
+                class="w-5 h-5 shrink-0 mt-0.5"
+                [class.text-slate-400]="!isOpen(sIdx, qIdx)"
+                [style.color]="isOpen(sIdx, qIdx) ? '#1d4b99' : null"
+                [class.dark:text-slate-500]="!isOpen(sIdx, qIdx)"
+              ></lucide-icon>
+              <span
+                class="font-medium"
+                [class.text-slate-900]="isOpen(sIdx, qIdx)"
+                [class.text-slate-800]="!isOpen(sIdx, qIdx)"
+                [class.dark:text-white]="isOpen(sIdx, qIdx)"
+                [class.dark:text-slate-200]="!isOpen(sIdx, qIdx)"
+              >
+                {{ item.q }}
+              </span>
+            </div>
+            <lucide-icon
+              name="chevron-down"
+              class="w-5 h-5 text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0"
+              [class.rotate-180]="isOpen(sIdx, qIdx)"
+            ></lucide-icon>
+          </button>
+
+          <div
+            [@expandCollapse]="isOpen(sIdx, qIdx) ? 'expanded' : 'collapsed'"
+            class="overflow-hidden"
+          >
+            <div
+              class="px-6 pb-5 pt-2 text-slate-600 dark:text-slate-400 text-sm leading-relaxed border-t border-slate-100 dark:border-slate-700 ml-14 mr-6 bg-[rgba(0,175,185,0.03)] dark:bg-[rgba(0,175,185,0.08)] rounded-b-lg"
+            >
+              {{ item.a }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Support -->
+  <div
+    class="mt-16 rounded-2xl p-8 text-center border max-w-4xl mx-auto transition-colors duration-200"
+    style="background-color: rgba(0, 175, 185, 0.05); border-color: rgba(0, 175, 185, 0.15)"
+  >
+    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">
+      {{ 'faq.noAnswerTitle' | translate }}
+    </h3>
+    <p class="text-slate-600 dark:text-slate-400 mb-6">
+      {{ 'faq.noAnswerDesc' | translate }}
+    </p>
+    <button
+      (click)="navigateToChat()"
+      class="inline-flex items-center space-x-2 text-white px-6 py-3 rounded-xl font-medium transition-colors shadow-sm bg-[#1d4b99] hover:bg-[#153c80]"
+    >
+      <lucide-icon name="message-square" class="w-5 h-5"></lucide-icon>
+      <span>{{ 'faq.askIA' | translate }}</span>
+    </button>
+  </div>
+</div>

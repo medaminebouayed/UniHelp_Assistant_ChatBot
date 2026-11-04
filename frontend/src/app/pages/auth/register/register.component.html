@@ -1,0 +1,578 @@
+<!-- Step 1: Personal info (uses the same layout as login) -->
+<ng-container *ngIf="step() === 1">
+  <app-auth-layout>
+    <div class="w-full animate-swipe-in transition-colors duration-200">
+      <div class="mb-8 flex flex-col items-center justify-start">
+        <app-uni-help-logo size="lg" [showText]="false" color="#1d4b99"></app-uni-help-logo>
+        <span class="mt-6 text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+          UniHelp
+        </span>
+        <p class="mt-2 text-slate-600 dark:text-slate-300 text-center">
+          Votre assistant intelligent qui simplifie, automatise et optimise les services universitaires
+        </p>
+      </div>
+
+      <div *ngIf="error()" class="mb-6 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg border border-red-100 dark:border-red-800">
+        {{ error() }}
+      </div>
+
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">{{ 'profile.nom' | translate }}</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <lucide-icon name="user" class="h-5 w-5 text-slate-400"></lucide-icon>
+              </div>
+              <input type="text" name="lastName" placeholder="{{ 'profile.nom' | translate }}" [(ngModel)]="formData.lastName"
+                class="block w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:ring-2 focus:ring-[#1d4b99] focus:border-transparent outline-none transition-all font-medium" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">{{ 'profile.prenom' | translate }}</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <lucide-icon name="user" class="h-5 w-5 text-slate-400"></lucide-icon>
+              </div>
+              <input type="text" name="firstName" placeholder="{{ 'profile.prenom' | translate }}" [(ngModel)]="formData.firstName"
+                class="block w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:ring-2 focus:ring-[#1d4b99] focus:border-transparent outline-none transition-all font-medium" />
+            </div>
+          </div>
+
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">{{ 'auth.email' | translate }}</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <lucide-icon name="mail" class="h-5 w-5 text-slate-400"></lucide-icon>
+            </div>
+            <input type="email" name="email" placeholder="vous@gmail.com" [(ngModel)]="formData.email"
+              class="block w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:ring-2 focus:ring-[#1d4b99] focus:border-transparent outline-none transition-all font-medium" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">{{ 'auth.password' | translate }}</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <lucide-icon name="lock" class="h-5 w-5 text-slate-400"></lucide-icon>
+            </div>
+            <input [type]="showPassword() ? 'text' : 'password'" name="password" placeholder="{{ 'auth.password' | translate }}" [(ngModel)]="formData.password"
+              class="block w-full pl-11 pr-12 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:ring-2 focus:ring-[#1d4b99] focus:border-transparent outline-none transition-all font-medium" />
+            <button type="button" (click)="showPassword.set(!showPassword())" tabindex="-1"
+              class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none">
+              <lucide-icon [name]="showPassword() ? 'eye-off' : 'eye'" class="w-5 h-5"></lucide-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <button (click)="handleNext()"
+        class="mt-6 w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1d4b99] transition-all duration-200 bg-[#1d4b99] hover:bg-[#153c80] hover:shadow-xl transform hover:-translate-y-0.5">
+        Suivant
+      </button>
+
+      <div class="mt-8 text-center text-sm text-slate-600 dark:text-slate-300">
+        {{ 'auth.hasAccount' | translate }}
+        <a routerLink="/login" class="font-semibold text-[#1d4b99] hover:text-[#153c80] transition-colors">
+          {{ 'auth.signIn' | translate }}
+        </a>
+      </div>
+    </div>
+  </app-auth-layout>
+</ng-container>
+
+<!-- Steps 2-6: Custom full-page layout -->
+<div *ngIf="step() > 1"
+  class="min-h-screen bg-gradient-to-br from-[#1d4b99] to-teal-700 flex flex-col font-sans animate-swipe-in">
+  <!-- Top Header -->
+  <div class="p-6 md:pt-10 md:pb-4 max-w-6xl mx-auto w-full text-white">
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <h6 class="text-2xl md:text-3xl font-bold mb-2">
+          Bienvenue sur UniHelp ! Parlez-nous de vous
+        </h6>
+        <!-- <p class="text-teal-100 text-lg">
+          Ces informations nous permettront de personnaliser votre assistant IA.
+        </p> -->
+      </div>
+
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="mb-2 flex justify-between text-sm font-medium text-teal-100">
+      <span>{{ step() - 1 }} sur 4 complété</span>
+      <span>{{ progressPercentage }}%</span>
+    </div>
+    <div class="w-full h-2 bg-teal-900/30 rounded-full overflow-hidden mb-6">
+      <div class="h-full bg-white transition-all duration-500 ease-out" [style.width.%]="progressPercentage"></div>
+    </div>
+  </div>
+
+  <!-- Main Content Card -->
+  <div class="flex-1 px-4 md:px-10 pb-10 flex justify-center">
+    <div class="w-full max-w-6xl bg-white dark:bg-slate-800 rounded-2xl shadow-2xl dark:shadow-slate-900 overflow-hidden flex flex-col md:flex-row transition-colors duration-200">
+
+      <!-- Form Side -->
+      <div class="flex-1 p-6 md:p-10 flex flex-col">
+        <!-- Step Indicators -->
+        <div class="flex items-center justify-start mb-6 overflow-x-auto pb-2">
+          <div class="flex items-center gap-2 shrink-0">
+            <div class="w-4 h-4 rounded-full border-2"
+              [ngClass]="step() >= 2 ? 'border-[#1d4b99] bg-white' : 'border-slate-300'">
+              <div *ngIf="step() > 2" class="w-full h-full bg-[#1d4b99] rounded-full scale-50"></div>
+            </div>
+            <span class="text-xs font-medium whitespace-nowrap"
+              [ngClass]="step() >= 2 ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'">
+              {{ 'profile.personalInfo' | translate }}
+            </span>
+          </div>
+          <div class="w-6 h-0.5 mx-2" [ngClass]="step() > 2 ? 'bg-[#1d4b99]' : 'bg-slate-200 dark:bg-slate-600'"></div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <div class="w-4 h-4 rounded-full border-2"
+              [ngClass]="step() >= 3 ? 'border-[#1d4b99] bg-white' : 'border-slate-300'">
+              <div *ngIf="step() > 3" class="w-full h-full bg-[#1d4b99] rounded-full scale-50"></div>
+            </div>
+            <span class="text-xs font-medium whitespace-nowrap"
+              [ngClass]="step() >= 3 ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'">
+              {{ 'profile.diplomeObtenu' | translate }}
+            </span>
+          </div>
+          <div class="w-6 h-0.5 mx-2" [ngClass]="step() > 3 ? 'bg-[#1d4b99]' : 'bg-slate-200 dark:bg-slate-600'"></div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <div class="w-4 h-4 rounded-full border-2"
+              [ngClass]="step() >= 4 ? 'border-[#1d4b99] bg-white' : 'border-slate-300'">
+              <div *ngIf="step() > 4" class="w-full h-full bg-[#1d4b99] rounded-full scale-50"></div>
+            </div>
+            <span class="text-xs font-medium whitespace-nowrap"
+              [ngClass]="step() >= 4 ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'">
+              {{ 'profile.diplomeSouhaite' | translate }}
+            </span>
+          </div>
+
+          <div class="w-6 h-0.5 mx-2" [ngClass]="step() > 4 ? 'bg-[#1d4b99]' : 'bg-slate-200'"></div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <div class="w-4 h-4 rounded-full border-2"
+              [ngClass]="step() >= 5 ? 'border-[#1d4b99] bg-white' : 'border-slate-300'">
+              <div *ngIf="step() >= 5" class="w-full h-full bg-[#1d4b99] rounded-full scale-50"></div>
+            </div>
+            <span class="text-xs font-medium whitespace-nowrap"
+              [ngClass]="step() >= 5 ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'">
+              Bienvenue
+            </span>
+          </div>
+        </div>
+
+        <div *ngIf="error()" class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-xl border border-red-100 dark:border-red-800">
+          {{ error() }}
+        </div>
+
+        <form (submit)="handleSubmit($event)" class="flex-1 flex flex-col">
+          <div class="w-full">
+            <ng-container [ngSwitch]="step()">
+              <!-- Step 2 - Informations Personnelles -->
+              <div *ngSwitchCase="2" [@stepTransition] class="space-y-4">
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                  <lucide-icon name="user" class="w-5 h-5 text-[#1d4b99]"></lucide-icon>
+                  {{ 'profile.personalInfo' | translate }}
+                </h2>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                      {{ 'profile.cin' | translate }} / {{ 'profile.passport' | translate }}
+                    </label>
+                    <div class="relative">
+                      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <lucide-icon name="contact" class="h-5 w-5 text-slate-400"></lucide-icon>
+                      </div>
+                      <input type="text" name="cinPassport" [(ngModel)]="formData.cinPassport"
+                        (input)="onlyNumbers($event, 'cinPassport')" placeholder="CIN ou Passeport" maxlength="9"
+                        class="w-full pl-10 pr-3 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-0 focus:border-[#1d4b99] sm:text-sm" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                      {{ 'profile.pays' | translate }}
+                    </label>
+                    <div class="relative">
+                      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <lucide-icon name="map-pin" class="h-5 w-5 text-slate-400"></lucide-icon>
+                      </div>
+                      <input type="text" name="countrySearch" [(ngModel)]="countrySearch"
+                        (focus)="showCountryDropdown.set(true)"
+                        class="w-full pl-10 pr-10 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-0 focus:border-[#1d4b99] sm:text-sm"
+                        placeholder="Rechercher un pays" />
+
+                      <!-- Dropdown -->
+                      <div *ngIf="showCountryDropdown()"
+                        class="absolute z-10 w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl mt-1 max-h-60 overflow-y-auto">
+
+                        <div *ngFor="let country of filteredCountries" (click)="selectCountry(country)"
+                          class="px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer">
+                          {{ country }}
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                      {{ 'profile.birthDate' | translate }}
+                    </label>
+                    <div class="relative">
+                      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <lucide-icon name="calendar" class="h-5 w-5 text-slate-400"></lucide-icon>
+                      </div>
+                      <input type="date" name="birthDate" [(ngModel)]="formData.birthDate"
+                        [ngClass]="formData.birthDate ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'"
+                        class="w-full pl-10 pr-3 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-0 focus:border-[#1d4b99] sm:text-sm appearance-none" />
+                      <style>
+                        input[type="date"]::-webkit-calendar-picker-indicator {
+                          background: transparent;
+                          bottom: 0;
+                          color: transparent;
+                          cursor: pointer;
+                          height: auto;
+                          left: 0;
+                          position: absolute;
+                          right: 0;
+                          top: 0;
+                          width: auto;
+                        }
+                      </style>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                      Sexe
+                    </label>
+                    <div class="relative">
+                      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <lucide-icon name="user" class="h-5 w-5 text-slate-400"></lucide-icon>
+                      </div>
+                      <input type="text" name="sexSearch" [(ngModel)]="sexSearch" (focus)="showSexDropdown.set(true)"
+                        class="w-full pl-10 pr-3 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-0 focus:border-[#1d4b99] sm:text-sm"
+                        placeholder="Sélectionner..." />
+
+                      <!-- Dropdown -->
+                      <div *ngIf="showSexDropdown()"
+                        class="absolute z-10 w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl mt-1 max-h-60 overflow-y-auto">
+                        <div *ngFor="let sex of filteredSexOptions" (click)="selectSex(sex)"
+                          class="px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer">
+                          {{ sex }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                      {{ 'profile.phone' | translate }}
+                    </label>
+                    <div class="relative">
+                      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <lucide-icon name="phone" class="h-5 w-5 text-slate-400"></lucide-icon>
+                      </div>
+                      <input type="tel" name="phone" [(ngModel)]="formData.phone" placeholder="telephone"
+                        (input)="onlyNumbers($event, 'phone')"
+                        class="w-full pl-10 pr-3 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-0 focus:border-[#1d4b99] sm:text-sm" />
+                  </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                      {{ 'profile.address' | translate }}
+                    </label>
+                    <div class="relative">
+                      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-start pt-3.5 pointer-events-none">
+                        <lucide-icon name="map-pin" class="h-5 w-5 text-slate-400"></lucide-icon>
+                      </div>
+                      <textarea name="address" [(ngModel)]="formData.address" placeholder="adresse"
+                        class="w-full pl-10 pr-3 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-0 focus:border-[#1d4b99] sm:text-sm">
+</textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 3 - Diplôme Obtenu -->
+              <div *ngSwitchCase="3" [@stepTransition] class="space-y-6">
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                  <lucide-icon name="book-open" class="w-5 h-5 text-[#1d4b99]"></lucide-icon>
+                  {{ 'profile.diplomeObtenu' | translate }}
+                </h2>
+
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    Dernier diplôme obtenu
+                  </label>
+                  <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                      <!-- <lucide-icon name="book-open" class="h-5 w-5 text-slate-400"></lucide-icon> -->
+                      <lucide-icon name="graduation-cap" class="h-5 w-5 text-slate-400"></lucide-icon>
+
+                    </div>
+                    <input type="text" name="lastDiplomaSearch" [(ngModel)]="lastDiplomaSearch"
+                      (focus)="showLastDiplomaDropdown.set(true)"
+                      class="w-full pl-10 pr-10 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-0 focus:border-[#1d4b99] sm:text-sm"
+                      placeholder="Sélectionner" />
+
+                    <!-- Dropdown -->
+                    <div *ngIf="showLastDiplomaDropdown()"
+                      class="absolute z-10 w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl mt-1 max-h-60 overflow-y-auto shadow-lg dark:shadow-slate-900">
+                      <div *ngFor="let option of filteredLastDiplomaOptions" (click)="selectLastDiploma(option)"
+                        class="px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer text-sm">
+                        {{ option }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    {{ 'profile.anneeObtention' | translate }}
+                  </label>
+                  <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                      <lucide-icon name="calendar" class="h-5 w-5 text-slate-400"></lucide-icon>
+                    </div>
+                    <input type="text" name="diplomaYear" [(ngModel)]="formData.diplomaYear" placeholder="Année"
+                      (input)="onlyNumbers($event, 'diplomaYear')" maxlength="4"
+                      class="w-full pl-10 pr-3 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-0 focus:border-[#1d4b99] sm:text-sm" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 4 - Diplôme Souhaité -->
+              <div *ngSwitchCase="4" [@stepTransition] class="space-y-4">
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                  <lucide-icon name="graduation-cap" class="w-5 h-5 text-[#1d4b99]"></lucide-icon>
+                  {{ 'profile.diplomeSouhaite' | translate }}
+                </h2>
+
+                <!-- Université -->
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    {{ 'profile.universite' | translate }}
+                  </label>
+                  <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                      <lucide-icon name="building" class="h-5 w-5 text-slate-400"></lucide-icon>
+                    </div>
+                    <input type="text" name="universitySearch" [(ngModel)]="universitySearch"
+                      (focus)="showUniversityDropdown.set(true)"
+                      class="w-full pl-10 pr-10 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-0 focus:border-[#1d4b99] sm:text-sm"
+                      placeholder="Rechercher..." />
+
+                    <!-- Dropdown -->
+                    <div *ngIf="showUniversityDropdown()"
+                      class="absolute z-10 w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl mt-1 max-h-60 overflow-y-auto shadow-lg dark:shadow-slate-900">
+                      <div *ngFor="let option of filteredUniversityOptions" (click)="selectUniversity(option)"
+                        class="px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer text-sm">
+                        {{ option }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Diplôme souhaité -->
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    {{ 'profile.diplomeSouhaite' | translate }}
+                  </label>
+                  <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                      <lucide-icon name="graduation-cap" class="h-5 w-5 text-slate-400"></lucide-icon>
+                    </div>
+                    <input type="text" name="desiredDiplomaSearch" [(ngModel)]="desiredDiplomaSearch"
+                      (focus)="showDesiredDiplomaDropdown.set(true)"
+                      class="w-full pl-10 pr-10 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-0 focus:border-[#1d4b99] sm:text-sm"
+                      placeholder="Rechercher..." />
+
+                    <!-- Dropdown -->
+                    <div *ngIf="showDesiredDiplomaDropdown()"
+                      class="absolute z-10 w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl mt-1 max-h-60 overflow-y-auto shadow-lg dark:shadow-slate-900">
+                      <ng-container *ngFor="let option of filteredDesiredDiplomaOptions">
+                        <!-- Section header -->
+                        <div *ngIf="option.type === 'header'"
+                          class="px-4 pt-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-[#1d4b99] bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700 select-none">
+                          {{ option.text }}
+                        </div>
+                        <!-- Selectable item -->
+                        <div *ngIf="option.type === 'item'" (click)="selectDesiredDiploma(option.text)"
+                          class="px-4 py-2 pl-5 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-[#1d4b99] cursor-pointer text-sm text-slate-700 dark:text-slate-300 transition-colors">
+                          {{ option.text }}
+                        </div>
+                      </ng-container>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <!-- Niveau -->
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                      {{ 'profile.niveau' | translate }}
+                    </label>
+                    <div class="relative">
+                      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <lucide-icon name="layers" class="h-5 w-5 text-slate-400"></lucide-icon>
+                      </div>
+                      <input type="text" name="levelSearch" [(ngModel)]="levelSearch"
+                        (focus)="showLevelDropdown.set(true)"
+                        class="w-full pl-10 pr-10 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-0 focus:border-[#1d4b99] sm:text-sm"
+                        placeholder="Sélectionner..." />
+
+                      <!-- Dropdown -->
+                      <div *ngIf="showLevelDropdown()"
+                        class="absolute z-10 w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl mt-1 max-h-60 overflow-y-auto shadow-lg dark:shadow-slate-900">
+                        <div *ngFor="let option of filteredLevelOptions" (click)="selectLevel(option)"
+                          class="px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer text-sm">
+                          {{ option }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Cours -->
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                      {{ 'profile.cours' | translate }}
+                    </label>
+                    <div class="relative">
+                      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <lucide-icon name="book-open" class="h-5 w-5 text-slate-400"></lucide-icon>
+                      </div>
+                      <input type="text" name="courseTimeSearch" [(ngModel)]="courseTimeSearch"
+                        (focus)="showCourseTimeDropdown.set(true)"
+                        class="w-full pl-10 pr-10 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-0 focus:border-[#1d4b99] sm:text-sm"
+                        placeholder="Sélectionner..." />
+
+                      <!-- Dropdown -->
+                      <div *ngIf="showCourseTimeDropdown()"
+                        class="absolute z-10 w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl mt-1 max-h-60 overflow-y-auto shadow-lg dark:shadow-slate-900">
+                        <div *ngFor="let option of filteredCourseTimeOptions" (click)="selectCourseTime(option)"
+                          class="px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer text-sm">
+                          {{ option }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Connu par -->
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    Comment avez-vous connu North American ?
+                  </label>
+                  <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                      <lucide-icon name="radio" class="h-5 w-5 text-slate-400"></lucide-icon>
+                    </div>
+                    <input type="text" name="knownBySearch" [(ngModel)]="knownBySearch"
+                      (focus)="showKnownByDropdown.set(true)"
+                      class="w-full pl-10 pr-10 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-0 focus:border-[#1d4b99] sm:text-sm"
+                      placeholder="Sélectionner..." />
+
+                    <!-- Dropdown -->
+                    <div *ngIf="showKnownByDropdown()"
+                      class="absolute z-10 w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl mt-1 max-h-60 overflow-y-auto shadow-lg dark:shadow-slate-900">
+                      <div *ngFor="let option of filteredKnownByOptions" (click)="selectKnownBy(option.label)"
+                        class="flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-[#1d4b99] cursor-pointer text-sm text-slate-700 dark:text-slate-300 transition-colors">
+                        <lucide-icon [name]="option.icon" class="w-4 h-4 shrink-0"></lucide-icon>
+                        <span>{{ option.label }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Step 5 - Félicitations -->
+              <div *ngSwitchCase="5" [@stepTransition]
+                class="flex flex-col items-center justify-center h-full text-center space-y-6 py-8">
+                <!-- Logo -->
+                <div class="flex flex-col items-center gap-2 mb-2">
+                  <div class="w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg dark:shadow-slate-900"
+                    style="background-color:#1d4b99">
+                    <lucide-icon name="graduation-cap" class="w-10 h-10 text-white"></lucide-icon>
+                  </div>
+                  <span class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">UniHelp</span>
+                </div>
+                <div class="space-y-4 mb-4">
+                  <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Félicitations !</h2>
+                  <p class="text-slate-500 dark:text-slate-400 text-base max-w-sm mx-auto">
+                    Votre compte a été créé avec succès. Vous pouvez maintenant profiter de tous les services UniHelp.
+                  </p>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="pt-4 flex items-center w-full" [ngClass]="[
+              step() === 5 ? 'justify-center' : 'justify-between',
+              step() === 2 ? 'mt-auto' : 'mt-8'
+            ]">
+            <button *ngIf="step() > 1 && step() < 5" type="button" (click)="handleBack()"
+              class="flex items-center px-5 py-2.5 border border-slate-300 dark:border-slate-600 shadow-sm text-sm font-medium rounded-xl text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1d4b99] transition-colors">
+              <lucide-icon name="chevron-left" class="w-4 h-4 mr-1.5"></lucide-icon>
+              Retour
+            </button>
+
+            <div *ngIf="step() < 5" class="flex gap-3">
+              <button *ngIf="step() < 4" type="button" (click)="handleNext()"
+                class="flex items-center px-6 py-2.5 border border-transparent shadow-sm text-sm font-medium rounded-xl text-white bg-rose-400 hover:bg-rose-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-400 transition-colors">
+                Suivant
+                <lucide-icon name="chevron-right" class="w-4 h-4 ml-1.5"></lucide-icon>
+              </button>
+              <button *ngIf="step() === 4" type="submit" [disabled]="isSubmitting()"
+                class="flex justify-center items-center px-8 py-2.5 border border-transparent shadow-sm text-sm font-medium rounded-xl text-white bg-rose-400 hover:bg-rose-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-400 disabled:opacity-75 disabled:cursor-not-allowed transition-colors">
+                <lucide-icon *ngIf="isSubmitting()" name="loader-2" class="w-5 h-5 animate-spin"></lucide-icon>
+                <span *ngIf="!isSubmitting()">Terminer</span>
+              </button>
+            </div>
+
+            <button *ngIf="step() === 5" type="button" (click)="goToDashboard()"
+              class="flex justify-center items-center px-10 py-3 border border-transparent shadow-md text-base font-bold rounded-xl text-white bg-[#1d4b99] hover:bg-[#153c80] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1d4b99] transition-colors">
+              Accéder à mon espace
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Illustration Side -->
+      <div
+        class="hidden md:flex md:w-1/2 bg-gradient-to-br from-slate-50 dark:from-slate-800/50 to-white dark:to-slate-800 border-l border-slate-100 dark:border-slate-700 p-4 flex-col items-center justify-center relative">
+        <div [ngSwitch]="step()" class="w-full">
+          <div *ngSwitchCase="2" class="w-full flex flex-col items-center animate-fade-in">
+            <img src="assets/images/Profile.png" alt="Informations Personnelles"
+              class="w-full max-w-lg h-auto object-contain mix-blend-multiply animate-float" />
+          </div>
+          <div *ngSwitchCase="3" class="w-full flex flex-col items-center animate-fade-in">
+            <img src="assets/images/Graduation.png" alt="Diplôme Obtenu"
+              class="w-full max-w-lg h-auto object-contain mix-blend-multiply mb-6 animate-float" />
+
+          </div>
+          <div *ngSwitchCase="4" class="w-full flex flex-col items-center animate-fade-in">
+            <img src="assets/images/pana.png" alt="Diplôme Souhaité"
+              class="w-full max-w-lg h-auto object-contain mix-blend-multiply mb-6 animate-float" />
+          </div>
+
+          <div *ngSwitchCase="5" class="w-full flex flex-col items-center animate-fade-in">
+            <img src="assets/images/Chatbot.png" alt="Bienvenue"
+              class="w-full max-w-sm h-auto object-contain mix-blend-multiply mb-6 animate-float" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

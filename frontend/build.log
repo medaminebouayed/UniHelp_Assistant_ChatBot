@@ -1,0 +1,31 @@
+
+> uni-help@0.0.0 build
+> ng build
+
+- Generating browser application bundles (phase: setup)...
+Ô£ö Browser application bundle generation complete.
+Ô£ö Browser application bundle generation complete.
+
+Error: src/app/pages/auth/login/login.component.html:3:24 - error TS2322: Type '"lg"' is not assignable to type '"small" | "medium" | "large" | "xlarge"'.
+
+3     <app-uni-help-logo size="lg" [showText]="false" color="#00b1ba"></app-uni-help-logo>
+                         ~~~~
+
+  src/app/pages/auth/login/login.component.ts:13:16
+    13   templateUrl: './login.component.html'
+                      ~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component LoginComponent.
+
+
+Error: src/app/pages/auth/register/register.component.html:6:28 - error TS2322: Type '"lg"' is not assignable to type '"small" | "medium" | "large" | "xlarge"'.
+
+6         <app-uni-help-logo size="lg" [showText]="false" color="#00b1ba"></app-uni-help-logo>
+                             ~~~~
+
+  src/app/pages/auth/register/register.component.ts:26:16
+    26   templateUrl: './register.component.html'
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component RegisterComponent.
+
+
+

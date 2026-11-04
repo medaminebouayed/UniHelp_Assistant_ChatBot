@@ -1,0 +1,273 @@
+<div class="space-y-6 font-sans transition-colors duration-200">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">{{ 'admin.management' | translate }}</h1>
+  </div>
+
+  <!-- Search, Filter and Add Button -->
+  <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row gap-3">
+    <div class="relative flex-1">
+      <lucide-icon name="search"
+        class="w-5 h-5 absolute left-2 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500"></lucide-icon>
+      <input type="text" placeholder="{{ 'common.search' | translate }}..." [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)" [style.paddingLeft]="'3rem'"
+        class="w-full pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#1d4b99] focus:border-[#1d4b99] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
+    </div>
+
+    <div class="flex gap-2">
+      <button (click)="openAddModal()"
+        class="flex items-center space-x-2 bg-[#1d4b99] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#153c80] transition-all shadow-sm">
+        <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
+        <span>Ajouter Admin</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left">
+        <thead class="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700">
+          <tr>
+            <th class="px-6 py-4 font-medium">ID</th>
+            <th class="px-6 py-4 font-medium">Administrateur</th>
+            <th class="px-6 py-4 font-medium">Département</th>
+            <th class="px-6 py-4 font-medium">Tel</th>
+            <th class="px-6 py-4 font-medium">Statut</th>
+            <th class="px-6 py-4 font-medium text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+          <tr *ngFor="let admin of paginatedAdmins()" class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+            <td class="px-6 py-4 text-slate-500 dark:text-slate-400 font-mono text-xs">{{ admin.id }}</td>
+            <td class="px-6 py-4">
+              <div class="flex items-center space-x-3">
+                <div
+                  class="w-9 h-9 rounded-full bg-teal-50 dark:bg-teal-900/30 text-[#1d4b99] flex items-center justify-center font-bold border border-teal-100 dark:border-teal-900/50">
+                  {{ admin.name.substring(0, 1) }}
+                </div>
+                <div>
+                  <div class="font-medium text-slate-900 dark:text-white">{{ admin.name }}</div>
+                  <div class="text-slate-500 dark:text-slate-400 text-xs flex items-center mt-0.5">
+                    <lucide-icon name="mail" class="w-3 h-3 mr-1"></lucide-icon>
+                    {{ admin.email }}
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <span
+                class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-600">
+                {{ admin.department }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-slate-500 dark:text-slate-400">{{ admin.phone }}</td>
+            <td class="px-6 py-4">
+              <span
+                class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                [ngClass]="{
+                  'bg-emerald-100 text-emerald-700': admin.status === 'Actif',
+                  'bg-amber-100 text-amber-700': admin.status === 'En attente',
+                  'bg-slate-100 text-slate-700': admin.status === 'Inactif'
+                }">
+                <lucide-icon [name]="admin.status === 'Actif' ? 'check-circle' : 'x-circle'"
+                  class="w-3.5 h-3.5 mr-1.5"></lucide-icon>
+                {{ admin.status }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-right">
+              <div class="flex justify-end space-x-1">
+                <button (click)="openViewModal(admin)"
+                  class="p-1.5 text-slate-400 dark:text-slate-500 hover:text-[#1d4b99] rounded-lg transition-colors">
+                  <lucide-icon name="eye" class="w-4 h-4"></lucide-icon>
+                </button>
+                <button (click)="openDeleteModal(admin)"
+                  class="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 rounded-lg transition-colors">
+                  <lucide-icon name="trash" class="w-4 h-4"></lucide-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div
+      class="p-4 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-700/50">
+      <span>Affichage de {{ startIndex() + 1 }} à {{ endIndex() }} sur {{ filteredCount() }} administrateurs</span>
+      <div class="flex items-center gap-1">
+        <button (click)="prevPage()" [disabled]="currentPage() === 1"
+          class="px-2 py-1 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 disabled:opacity-50 text-slate-700 dark:text-slate-300">&lt;</button>
+        <div class="flex gap-1">
+          <button *ngFor="let p of pageNumbers()" (click)="goToPage(p)"
+            class="w-8 h-8 rounded-md transition-all font-medium" [class.bg-[#1d4b99]]="currentPage() === p"
+            [class.text-white]="currentPage() === p" [class.hover:bg-slate-200]="currentPage() !== p">{{ p }}</button>
+        </div>
+        <button (click)="nextPage()" [disabled]="currentPage() === totalPages()"
+          class="px-2 py-1 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 disabled:opacity-50 text-slate-700 dark:text-slate-300">&gt;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/View Modal -->
+  <div *ngIf="isModalOpen()">
+    <div (click)="isModalOpen.set(false)" class="fixed inset-0 bg-slate-900/50 dark:bg-black/70 backdrop-blur-sm z-50"></div>
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden" [@modalSlide]>
+        <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-slate-50 dark:bg-slate-700/50">
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ viewingAdmin() ? 'Profil Admin' : 'Ajouter un administrateur'
+            }}</h3>
+          <button (click)="isModalOpen.set(false)"
+            class="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600">
+            <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+          </button>
+        </div>
+
+        <ng-container *ngIf="!viewingAdmin()">
+          <div class="p-6 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Nom</label>
+                <input type="text" [(ngModel)]="formData.name"
+                  class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:ring-2 focus:ring-[#1d4b99] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Prenom</label>
+                <input type="text" [(ngModel)]="formData.prenom"
+                  class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:ring-2 focus:ring-[#1d4b99] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Email</label>
+              <input type="email" [(ngModel)]="formData.email"
+                class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:ring-2 focus:ring-[#1d4b99] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Password</label>
+              <input type="password" [(ngModel)]="formData.password"
+                class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:ring-2 focus:ring-[#1d4b99] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Téléphone</label>
+              <input type="tel" [(ngModel)]="formData.phone"
+                class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:ring-2 focus:ring-[#1d4b99] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Département</label>
+              <select [(ngModel)]="formData.department"
+                class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:ring-2 focus:ring-[#1d4b99] bg-white dark:bg-slate-800 outline-none text-slate-900 dark:text-white">
+                <option *ngFor="let d of departments" [value]="d">{{ d }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="p-6 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 flex justify-end space-x-3">
+            <button (click)="isModalOpen.set(false)"
+              class="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 transition-colors">
+              {{ 'common.cancel' | translate }}
+            </button>
+            <button (click)="handleSave()"
+              class="px-4 py-2 bg-[#1d4b99] text-white rounded-lg text-sm font-bold hover:bg-[#153c80] shadow-sm transition-all">
+              Ajouter
+            </button>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="viewingAdmin()">
+          <div class="h-32 bg-slate-800 relative">
+            <div class="absolute inset-0 opacity-40 bg-cover bg-center"
+              style="background-image: url('assets/images/couverture.webp')">
+            </div>
+          </div>
+
+          <div class="px-6 pb-6 relative">
+            <div class="flex justify-between items-end -mt-12 mb-4">
+              <div
+                class="w-24 h-24 rounded-full border-4 border-white dark:border-slate-700 shadow-lg bg-white dark:bg-slate-800 flex items-center justify-center text-[#1d4b99] text-3xl font-bold overflow-hidden">
+                {{ viewingAdmin()?.name?.substring(0, 1) }}
+              </div>
+              <span
+                class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                [ngClass]="{
+                  'bg-emerald-100 text-emerald-700': viewingAdmin()?.status === 'Actif',
+                  'bg-amber-100 text-amber-700': viewingAdmin()?.status === 'En attente',
+                  'bg-slate-100 text-slate-700': viewingAdmin()?.status === 'Inactif'
+                }">
+                <lucide-icon [name]="viewingAdmin()?.status === 'Actif' ? 'check-circle' : 'x-circle'"
+                  class="w-3.5 h-3.5 mr-1.5"></lucide-icon>
+                {{ viewingAdmin()?.status }}
+              </span>
+            </div>
+
+            <div>
+              <h2 class="text-2xl font-bold text-slate-900 dark:text-white">{{ viewingAdmin()?.name }} {{ viewingAdmin()?.prenom }}</h2>
+              <p class="text-slate-500 dark:text-slate-400 flex items-center mt-1 text-sm">
+                <lucide-icon name="mail" class="w-4 h-4 mr-2"></lucide-icon>
+                {{ viewingAdmin()?.email }}
+              </p>
+            </div>
+
+            <div class="mt-8 grid grid-cols-2 gap-4">
+              <div class="bg-slate-50 dark:bg-slate-700/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+                <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Département</p>
+                <p class="font-bold text-slate-800 dark:text-slate-200 flex items-center">
+                  <lucide-icon name="building" class="w-4 h-4 mr-2 text-[#1d4b99]"></lucide-icon>
+                  {{ viewingAdmin()?.department }}
+                </p>
+              </div>
+              <div class="bg-slate-50 dark:bg-slate-700/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+                <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Téléphone</p>
+                <p class="font-bold text-slate-800 dark:text-slate-200 font-mono">{{ viewingAdmin()?.phone }}</p>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 flex justify-end">
+            <button (click)="isModalOpen.set(false)"
+              class="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 transition-colors">
+              Fermer
+            </button>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div *ngIf="isDeleteModalOpen()">
+    <div (click)="isDeleteModalOpen.set(false)" class="fixed inset-0 z-[100] bg-black/40 dark:bg-black/70 backdrop-blur-sm backdrop">
+    </div>
+
+    <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 pointer-events-none">
+      <div
+        class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-8 relative border border-gray-100 dark:border-slate-700 modal-content pointer-events-auto"
+        [@modalSlide]>
+        <button (click)="isDeleteModalOpen.set(false)"
+          class="absolute top-4 right-4 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700">
+          <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
+        </button>
+
+        <div class="text-center">
+          <div
+            class="mx-auto mb-6 flex items-center justify-center w-20 h-20 rounded-full bg-red-50 dark:bg-red-900/30 border-4 border-red-100 dark:border-red-900/50">
+            <lucide-icon name="trash-2" class="w-10 h-10 text-red-600"></lucide-icon>
+          </div>
+
+          <h3 class="mb-2 text-xl font-bold text-gray-900 dark:text-white">Confirmer la suppression</h3>
+          <p class="mb-8 text-gray-500 dark:text-slate-400 leading-relaxed">
+            Êtes-vous sûr de vouloir supprimer l'administrateur <strong>{{ viewingAdmin()?.name }}</strong>&nbsp;?
+          </p>
+
+          <div class="flex flex-col sm:flex-row justify-center items-center gap-3">
+            <button (click)="isDeleteModalOpen.set(false)"
+              class="w-full sm:w-auto px-8 py-3 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-300 rounded-xl text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-600 transition-all duration-200">
+              {{ 'common.cancel' | translate }}
+            </button>
+            <button (click)="handleDelete()"
+              class="w-full sm:w-auto px-8 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-red-500/20">
+              {{ 'common.delete' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

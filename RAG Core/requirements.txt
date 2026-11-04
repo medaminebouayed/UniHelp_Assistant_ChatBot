@@ -1,0 +1,34 @@
+# ── Core web framework ──
+fastapi>=0.110.0
+uvicorn[standard]
+pydantic>=2.0
+
+# ── HTTP clients ──
+httpx
+requests
+aiohttp
+
+# ── Database ──
+psycopg2
+neo4j
+
+# ── ML / NLP ──
+torch
+sentence-transformers
+numpy
+tiktoken
+rank-bm25
+
+# ── Document parsing ──
+PyMuPDF
+pypdf
+python-docx
+docx2txt
+
+# ── Utilities ──
+python-dotenv
+tqdm
+groq
+
+# ── LangChain (text splitting) ──
+langchain-text-splitters

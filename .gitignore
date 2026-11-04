@@ -1,0 +1,7 @@
+./.vscode
+./RAG Core/data/*
+./RAG Core/iit/*
+./RAG Core/isb/*RAG Core/data/ 
+RAG Core/__pycache__/ 
+*.pkl 
+*.ckpt 
